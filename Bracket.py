@@ -13,10 +13,8 @@ class Bracket(GeomBase):
     def bracket_shape(self):
         if self.shape == "rectangle":
             geom = RectangularSurface(width=2.0, length=1.0)
-        if self.shape == "circle":
+        elif self.shape == "circle":
             geom =  CircularFace(radius=1.0)
-        if self.shape == "file":
-            geom =  self.file
         return geom
 
     #Connector input
