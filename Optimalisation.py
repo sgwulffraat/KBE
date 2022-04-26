@@ -55,7 +55,7 @@ def execute_algorithm(algorithm, algorithm_name, problem, show_solution_plot=Fal
     # encapsulate the algorithm and its parameters in a tuple for each execution (needed for multi-processing)
     param_tuples = [(algorithm, algorithm_name, problem, show_solution_plot, solution_plot_save_path, calculate_times, calculate_fitness_stats) for _ in range(execution_num)]
 
-    solutions, values, value_evolutions, times, time_divisions = list(), list(), list(), list(), list()
+    solutions, values, value_evolutions, times, time_divisions = [], [], [], [], []
 
     # if possible, perform each execution in a separate CPU process (in parallel)
     if process_num > 1:
@@ -79,16 +79,17 @@ def execute_algorithm(algorithm, algorithm_name, problem, show_solution_plot=Fal
         for i in range(execution_num):
 
             solution, value, value_evolution, elapsed_time, time_division = execute_algorithm_with_params(param_tuples[i])
+            solutions.append(solution)
             values.append(value)
             value_evolutions.append(value_evolution)
             times.append(elapsed_time)
             time_divisions.append(time_division)
 
-    return solution, values, value_evolutions, times, time_divisions
+    return solutions, values, value_evolutions, times, time_divisions
 
 max_weight = np.inf
 container_shape = Polygon([(0.0, 0.0), (100.0, 0.0), (100.0, 100.0), (0.0, 100.0)])
-execution_num = 1
+execution_num = 10
 process_num = 1
 calculate_internal_times = True
 calculate_value_evolution = True
@@ -102,17 +103,19 @@ algorithm = evolutionary.solve_problem
 # del parapy.geom.Polygon
 
 container = Container(max_weight, container_shape)
-items = [Item(Polygon([(0.0, 0.0), (86.1, 0.0), (86.1, 15.2), (0, 15.2)]), 100 / 16, 1309),
-         Item(Polygon([(0.0, 0.0), (86.1, 0.0), (86.1, 15.2), (0, 15.2)]), 100 / 16, 1309),
-         Item(Polygon([(0.0, 0.0), (86.1, 0.0), (86.1, 15.2), (0, 15.2)]), 100 / 16, 1309),
-         Item(Polygon([(0.0, 0.0), (86.1, 0.0), (86.1, 15.2), (0, 15.2)]), 100 / 16, 1309),
-         Item(Polygon([(0.0, 0.0), (55.6, 0.0), (55.6, 15.2), (0, 15.2)]), 100 / 21, 845),
-         Item(Polygon([(0.0, 0.0), (55.6, 0.0), (55.6, 15.2), (0, 15.2)]), 100 / 21, 845),
-         Item(Polygon([(0.0, 0.0), (55.6, 0.0), (55.6, 15.2), (0, 15.2)]), 100 / 21, 845),
-         Item(Polygon([(0.0, 0.0), (55.6, 0.0), (55.6, 15.2), (0, 15.2)]), 100 / 21, 845)]
+items = [Item(Polygon([(0.0, 0.0), (86.1, 0.0), (86.1, 15.2), (0, 15.2)]), 1, 1),
+         Item(Polygon([(0.0, 0.0), (86.1, 0.0), (86.1, 15.2), (0, 15.2)]), 1, 1),
+         Item(Polygon([(0.0, 0.0), (86.1, 0.0), (86.1, 15.2), (0, 15.2)]), 1, 1),
+         Item(Polygon([(0.0, 0.0), (86.1, 0.0), (86.1, 15.2), (0, 15.2)]), 1, 1),
+         Item(Polygon([(0.0, 0.0), (55.6, 0.0), (55.6, 15.2), (0, 15.2)]), 1, 1),
+         Item(Polygon([(0.0, 0.0), (55.6, 0.0), (55.6, 15.2), (0, 15.2)]), 1, 1),
+         Item(Polygon([(0.0, 0.0), (55.6, 0.0), (55.6, 15.2), (0, 15.2)]), 1, 1),
+         Item(Polygon([(0.0, 0.0), (55.6, 0.0), (55.6, 15.2), (0, 15.2)]), 1, 1)]
 problem = Problem(container, items)
-solution = Solution(problem)
-final_solution, values, value_evolutions, times, time_divisions = execute_algorithm(algorithm=algorithm, algorithm_name=algorithm_name, problem=problem,
+
+solutions, values, value_evolutions, times, time_divisions = execute_algorithm(algorithm=algorithm, algorithm_name=algorithm_name, problem=problem,
                                                                                execution_num=execution_num, process_num=process_num, calculate_times=calculate_internal_times,
                                                                                calculate_fitness_stats=calculate_value_evolution)
-final_solution.visualize()
+
+for i in range(0,execution_num):
+    solutions[i].visualize()
