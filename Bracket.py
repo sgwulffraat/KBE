@@ -10,9 +10,16 @@ from parapy.exchange import *
 class Bracket(GeomBase):
     #Shape input: rectangle, circle or file
     shapeoptions = ["rectangle", "circle" , "file"]
+
+    #Connector input: various abbreviated connector types. See 'Connector details.xsl' for reference.
     connectortypes = ["_20A", "_20B", "_20C", "_20D", "_20E", "_20F", "_20G", "_20H", "_20J", "_24A", "_24B", "_24C", "_24D", "_24E", "_24F", "_24G", "_24H", "_24J", "EN2", "EN4"]
+
+    #Input block bracket generator
     bracketshape = Input("rectangle", widget=Dropdown(shapeoptions, labels=["Rectangular", "Circular", "Create from file"]))
     file = Input(__file__, widget=FilePicker, validator=Optional)
+
+    #Widget section connector type selection
+    #ADD VALIDATORS
     type1 = Input("_20A", label="Type Connector", widget=Dropdown(connectortypes,labels=["MIL/20-A", "MIL/20-B", "MIL/20-C", "MIL/20-D", "MIL/20-E", "MIL/20-F", "MIL/20-G", "MIL/20-H", "MIL/20-J", "MIL/24-A", "MIL/24-B", "MIL/24-C", "MIL/24-D", "MIL/24-E", "MIL/24-F", "MIL/24-G", "MIL/24-H", "MIL/24-J", "EN/2", "EN/4"]))
     n1 = Input(0, label="Number of this type")
     type2 = Input("_20A", label="Type Connector", widget=Dropdown(connectortypes,labels=["MIL/20-A", "MIL/20-B", "MIL/20-C", "MIL/20-D", "MIL/20-E", "MIL/20-F", "MIL/20-G", "MIL/20-H", "MIL/20-J", "MIL/24-A", "MIL/24-B", "MIL/24-C", "MIL/24-D", "MIL/24-E", "MIL/24-F", "MIL/24-G", "MIL/24-H", "MIL/24-J", "EN/2", "EN/4"]))
@@ -22,6 +29,7 @@ class Bracket(GeomBase):
     type4 = Input("_20A", label="Type Connector", widget=Dropdown(connectortypes,labels=["MIL/20-A", "MIL/20-B", "MIL/20-C", "MIL/20-D", "MIL/20-E", "MIL/20-F", "MIL/20-G", "MIL/20-H", "MIL/20-J", "MIL/24-A", "MIL/24-B", "MIL/24-C", "MIL/24-D", "MIL/24-E", "MIL/24-F", "MIL/24-G", "MIL/24-H", "MIL/24-J", "EN/2", "EN/4"]))
     n4 = Input(0, label="Number of this type")
     tol = Input(0.3, label="Tolerance")
+
     @Input
     def radius(self):
         if self.bracketshape == "circle":
@@ -56,8 +64,9 @@ class Bracket(GeomBase):
 
 
     @Attribute
-    def optimize(self):
+    def optimize_items(self):
         input = []
+        container =
         items1 = connector_input_converter(self.type1, self.n1, self.tol)
         items2 = connector_input_converter(self.type2, self.n2, self.tol)
         items3 = connector_input_converter(self.type3, self.n3, self.tol)
@@ -67,7 +76,6 @@ class Bracket(GeomBase):
         input.append(items3[0:-1])
         input.append(items4[0:-1])
         return input
-    #coords = optimize()
 
     # @Part
     # def bracket_shape(self):

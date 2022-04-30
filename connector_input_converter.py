@@ -9,59 +9,59 @@ def connector_input_converter(type, n, tol):
     items = []
     if type[0:3] == "_20":
         if type[-1] == "A":
-            d = 23.8 + 2*tol
+            d = 23.8 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
         if type[-1] == "B":
-            d = 23.8 + 2 * tol
+            d = 26.2 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
         if type[-1] == "C":
-            d = 23.8 + 2 * tol
+            d = 28.6 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
         if type[-1] == "D":
-            d = 23.8 + 2 * tol
+            d = 31 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
         if type[-1] == "E":
-            d = 23.8 + 2 * tol
+            d = 33.3 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
         if type[-1] == "F":
-            d = 23.8 + 2 * tol
+            d = 36.5 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
         if type[-1] == "G":
-            d = 23.8 + 2 * tol
+            d = 39.7 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
         if type[-1] == "H":
-            d = 23.8 + 2 * tol
+            d = 42.9 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
         if type[-1] == "J":
-            d = 23.8 + 2 * tol
+            d = 46 + 2 * tol
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 1)
     elif type[0:3] == "_24":
         if type[-1] == "A":
-            d = 30.2 + 2*tol
+            d = 30.2 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
         if type[-1] == "B":
-            d = 30.2 + 2 * tol
+            d = 34.9 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
         if type[-1] == "C":
-            d = 30.2 + 2 * tol
+            d = 38.1 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
         if type[-1] == "D":
-            d = 30.2 + 2 * tol
+            d = 41.3 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
         if type[-1] == "E":
-            d = 30.2 + 2 * tol
+            d = 44.5 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
         if type[-1] == "F":
-            d = 30.2 + 2 * tol
+            d = 49.2 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
         if type[-1] == "G":
-            d = 30.2 + 2 * tol
+            d = 52.4 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
         if type[-1] == "H":
-            d = 30.2 + 2 * tol
+            d = 55.6 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
         if type[-1] == "J":
-            d = 30.2 + 2 * tol
+            d = 58.7 + 2 * tol
             item = Item(Circle((0, 0), d), 1, 1)
     elif type == "EN2":
         l = 55.6 + 2 * tol

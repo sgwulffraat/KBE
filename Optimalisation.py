@@ -16,6 +16,7 @@ from common_algorithm_functions import get_time_since, visualize_boxplot_for_dat
 from ellipse import Ellipse
 from problem_solution import Item, Container, Problem, Solution
 
+
 def execute_algorithm_with_params(params):
 
     """Execute the algorithm specified in the first of the passed parameters with the rest of parameters, and return the solution, value and elapsed time"""
