@@ -20,19 +20,7 @@ from shape_functions import get_shape_exterior_points, get_centroid
 #from parapy.exchange import *
 #from parapy.geom import *
 
-
-# types of problems that can be solved: Knapsack-Packing Joint Problem, or Packing Problem
-KNAPSACK_PACKING_PROBLEM_TYPE = "KnapsackPacking"
-PACKING_PROBLEM_TYPE = "Packing"
-
-# directory where to save figures and results of the problems created specifically for the Knapsack-Packing Joint Problem
-KNAPSACK_PACKING_PROBLEM_DIR = "../Output/Problems/CustomKnapsackPacking/Test/"
-
-# directory where to save figures and results of instances of the Packing Problem
-PACKING_PROBLEM_DIR = "../Output/Problems/Packing/Comparison/"
-
-
-def create_knapsack_packing_problems_with_manual_solutions(can_print=False):
+def create_knapsack_packing_problem(can_print=False):
 
     """Create a set of Knapsack-Packing problem instances that are solved (optimally) with manual placements (using actions available for all the algorithms); both the problems and solutions are returned"""
 
@@ -43,9 +31,7 @@ def create_knapsack_packing_problems_with_manual_solutions(can_print=False):
     # Problem
 
     max_weight = 100
-    container_shape = Polygon([(0.0,0.0), (115,0.0),(115,115),(0.0,115)])
-
-    #del parapy.geom.Polygon
+    container_shape = Polygon([(100,100), (215,100),(215,215),(100,215)])
 
     container = Container(max_weight, container_shape)
     items = [Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845),
@@ -90,11 +76,10 @@ def create_problems(problem_type, can_print=False):
 
     """Create a set of problems of the specified problem type; both the problems and their optimal solutions (or at least optimal solution values) are returned"""
 
-    if problem_type == KNAPSACK_PACKING_PROBLEM_TYPE:
-        return create_knapsack_packing_problems_with_manual_solutions(can_print)
+    return create_knapsack_packing_problem(can_print)
 
 
-    return None, None, None
+    #return None, None, None
 
 
 def execute_algorithm_with_params(params):
@@ -268,6 +253,10 @@ def perform_experiments(problem_type, output_dir, load_experiments):
                     fig = plt.figure()
                     ax = fig.add_subplot(111)
                     ax.set_aspect('equal')
+                    x_container, y_container = get_shape_exterior_points(problem.container.shape)
+                    max_weight = problem.container.max_weight
+                    container = {"item": "container", "x_container": x_container, "y_container": y_container, "max_weight_container": max_weight}
+                    plt.plot(x_container,y_container, label = "container")
                     placed_connectors = dict()
                     for item_index in range(len(problem.items)):
                         if item_index in solution.placed_items:
@@ -295,8 +284,8 @@ def perform_experiments(problem_type, output_dir, load_experiments):
 
                     break
 
-    return placed_connectors
-    
+    return container, placed_connectors
+
 
 
 def main():
