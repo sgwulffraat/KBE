@@ -73,7 +73,7 @@ def connector_input_converter(type, n, tol):
         item = Item(Polygon([(0.0, 0.0), (l, 0.0), (l, w), (0, w)]), 1, 1)
     else:
         item = "Undefined item"
-    for i in range(0,n):
+    for i in range(0,n+1):
         items.append(item)
     return items
 

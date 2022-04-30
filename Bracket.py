@@ -4,7 +4,10 @@ from parapy.core.validate import *
 from parapy.geom import *
 from connector_input_converter import connector_input_converter
 from parapy.exchange import *
-#from ref_frame import Frame
+from ref_frame import Frame
+from shapely.geometry import Polygon, Point
+from circle import Circle
+
 
 
 class Bracket(GeomBase):
@@ -16,8 +19,8 @@ class Bracket(GeomBase):
 
     #Input block bracket generator
     bracketshape = Input("rectangle", widget=Dropdown(shapeoptions, labels=["Rectangular", "Circular", "Create from file"]))
-    file = Input(__file__, widget=FilePicker, validator=Optional)
-
+    filename = Input(__file__, widget=FilePicker)
+    height = Input(1)
     #Widget section connector type selection
     #ADD VALIDATORS
     type1 = Input("_20A", label="Type Connector", widget=Dropdown(connectortypes,labels=["MIL/20-A", "MIL/20-B", "MIL/20-C", "MIL/20-D", "MIL/20-E", "MIL/20-F", "MIL/20-G", "MIL/20-H", "MIL/20-J", "MIL/24-A", "MIL/24-B", "MIL/24-C", "MIL/24-D", "MIL/24-E", "MIL/24-F", "MIL/24-G", "MIL/24-H", "MIL/24-J", "EN/2", "EN/4"]))
@@ -33,7 +36,7 @@ class Bracket(GeomBase):
     @Input
     def radius(self):
         if self.bracketshape == "circle":
-            radius = 1
+            radius = 5
         else:
             radius = None
         return radius
@@ -41,7 +44,7 @@ class Bracket(GeomBase):
     @Input
     def width(self):
         if self.bracketshape == "rectangle":
-            width = 1
+            width = 10
         else:
             width = None
         return width
@@ -49,7 +52,7 @@ class Bracket(GeomBase):
     @Input
     def length(self):
         if self.bracketshape == "rectangle":
-            length = 1
+            length = 10
         else:
             length = None
         return length
@@ -66,7 +69,7 @@ class Bracket(GeomBase):
     @Attribute
     def optimize_items(self):
         input = []
-        container =
+        # container =
         items1 = connector_input_converter(self.type1, self.n1, self.tol)
         items2 = connector_input_converter(self.type2, self.n2, self.tol)
         items3 = connector_input_converter(self.type3, self.n3, self.tol)
@@ -77,12 +80,31 @@ class Bracket(GeomBase):
         input.append(items4[0:-1])
         return input
 
-    # @Part
-    # def bracket_shape(self):
-    #     if self.shape == "rectangle":
-    #         return RectangularSurface(width=2.0, length=1.0)
+    @Attribute
+    def optimize_container(self):
+        if self.bracketshape == "rectangle":
+            container = Polygon([(0.0, 0), (self.length, 0.0), (self.length, self.width), (0.0, self.width)])
+        if self.bracketshape == "circle":
+            container = Circle((0, 0), self.radius)
+        if self.bracketshape == 'file':
+            points = []
+            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
+                points.append((self.bracket_from_file.children[0].children[0].children[0].edges[i].start.x, self.bracket_from_file.children[0].children[0].children[0].edges[i].start.y))
+            print(points)
+            container = Polygon(points)
+        return container
 
+    @Part
+    def bracket_box(self):
+        return Box(width=self.width, length=self.length, height=self.height, centered = True , hidden = False if self.bracketshape == "rectangle" else True, label = "Bracket")
 
+    @Part
+    def bracket_cylinder(self):
+        return Cylinder(radius=self.radius, height=self.height, centered = True, hidden = False if self.bracketshape == "circle" else True, label = "Bracket")
+
+    @Part
+    def bracket_from_file(self):
+        return STEPReader(filename=self.filename, hidden = False if self.bracketshape == "file" else True, label = "Bracket")
 
     # if bracketshape == "square":
     #     @Part
@@ -93,7 +115,7 @@ class Bracket(GeomBase):
     #     def reference_frame(self):
     #         return Frame(pos=Position(location=getattr(self.bracket, 'cog'),
     #                                   orientation=getattr(self.bracket, 'orientation')))
-    # elif shape == "rectangle":
+    # elif bracketshape == "rectangle":
     #     @Part
     #     def bracket(self):
     #         return Box(width=self.width, length=self.length, height=self.height)
@@ -102,7 +124,7 @@ class Bracket(GeomBase):
     #     def reference_frame(self):
     #         return Frame(pos=Position(location=getattr(self.bracket, 'cog'),
     #                                   orientation=getattr(self.bracket, 'orientation')))
-    # elif shape == "circle":
+    # elif bracketshape == "circle":
     #     @Part
     #     def bracket(self):
     #         return Cylinder(radius=self.radius, height=self.height,
@@ -112,7 +134,7 @@ class Bracket(GeomBase):
     #     def reference_frame(self):
     #         return Frame(pos=Position(location=getattr(self.bracket, 'cog'),
     #                                   orientation=getattr(self.bracket, 'orientation')))
-    # elif shape == "file":
+    # elif bracketshape == "file":
     #     @Part
     #     def bracket(self):
     #         return STEPReader(filename=self.filename)
@@ -125,9 +147,9 @@ class Bracket(GeomBase):
     # else:
     #     print("WARNING: Geometry was not defined!")
 
-    # @Part
-    # def step(self):
-    #     return STEPWriter(trees=self.bracket)
+    @Part
+    def step(self):
+        return STEPWriter(trees=self.bracket_test)
 
 if __name__ == '__main__':
     from parapy.gui import display
