@@ -97,7 +97,8 @@ class Bracket(GeomBase):
             if self.popup_gui:
                 generate_warning("Warning: Value changed", msg)
         input = items1 + items2 + items3 + items4
-        return input
+        area = [area1, area2, area3, area4]
+        return input, area
 
     @Attribute
     def optimize_container(self):
