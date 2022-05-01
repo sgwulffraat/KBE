@@ -2,9 +2,20 @@ from problem_solution import Item
 from shapely.geometry import Polygon
 from circle import Circle
 import numpy as np
-n = 4
-type = "_20A"
-tol = 0.3
+import pandas as pd
+
+def read_connector_excel(filename, sheetname):
+    xls = pd.ExcelFile(filename)
+    df = pd.read_excel(xls, sheetname)
+    options = []
+    for i in range(0,len(df["Document ID"])):
+        if df["Document ID"].iloc[i][0:3] == "MIL":
+            options.append(df["Document ID"].iloc[i][0:3] + df["Document ID"].iloc[i][-3:-1] +
+                  df["Document ID"].iloc[i][-1] + "-" + df["Shell size"].iloc[i])
+        elif df["Document ID"].iloc[i][0:2] == "EN":
+            options.append(df["Document ID"].iloc[i][0:2]  + "-" + df["Shell size"].iloc[i][0])
+    return options
+
 
 def connector_input_converter(type, n, tol):
     items = []

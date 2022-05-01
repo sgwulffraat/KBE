@@ -2,13 +2,18 @@ from parapy.core import *
 from parapy.core.widgets import Dropdown, FilePicker
 from parapy.core.validate import *
 from parapy.geom import *
+del parapy.geom.occ.curve.Circle
 from connector_input_converter import connector_input_converter
 from parapy.exchange import *
-from shapely.geometry import Polygon
+from ref_frame import Frame
+from shapely.geometry import Polygon, Point
 from circle import Circle
-import numpy as np
-import warnings
+from connector_input_converter import read_connector_excel
 
+#add no input warning
+#annotation
+#site
+#excel combination input
 
 
 class Bracket(GeomBase):
@@ -157,12 +162,7 @@ class Bracket(GeomBase):
         return STEPWriter(trees=self.bracket_test)
 
 def generate_warning(warning_header, msg):
-    """
-    This function generates the warning dialog box
-    :param warning_header: The text to be shown on the dialog box header
-    :param msg: the message to be shown in dialog box
-    :return: None as it is GUI operation
-    """
+
     from tkinter import Tk, messagebox
 
     # initialization
