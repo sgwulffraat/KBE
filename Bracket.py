@@ -8,6 +8,7 @@ from parapy.exchange import *
 from shapely.geometry import Polygon, Point
 from circle import Circle
 from connector_input_converter import read_connector_excel
+from parapy.geom import TextLabel, Leader
 
 #add no input warning
 #annotation
@@ -45,8 +46,10 @@ class Bracket(GeomBase):
     tol = Input(0.3, label="Tolerance", validator=Positive(incl_zero=True))
 
     #height or thickness of the to be designed bracket
-    height = Input(1, validator=Positive(incl_zero=True))
-    popup_gui = Input(True)
+    height = Input(1, validator=Positive(incl_zero=True), label="Thickness of bracket")
+
+    #Allow pop up
+    popup_gui = Input(True, label= "Allow pop-up")
 
     @Input
     def radius(self):
@@ -109,7 +112,6 @@ class Bracket(GeomBase):
             for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
                 points.append((self.bracket_from_file.children[0].children[0].children[0].edges[i].start.x,
                                self.bracket_from_file.children[0].children[0].children[0].edges[i].start.y))
-            print(points)
             container = Polygon(points)
         return container
 
@@ -132,6 +134,13 @@ class Bracket(GeomBase):
     @Part
     def step(self):
         return STEPWriter(trees=self.bracket_test)
+
+    @Part
+    def labels(self):
+        return TextLabel(text="Bracket",
+                         position=self.bracket_box.cog,
+                         overlay=True)
+
 
 def generate_warning(warning_header, msg):
 
