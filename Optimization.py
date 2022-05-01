@@ -6,6 +6,7 @@ from Bracket import Bracket, generate_warning
 from working_testing import perform_experiments
 from parapy.exchange import *
 import pandas as pd
+import numpy as np
 
 class Optimization(GeomBase):
     """By choosing optimization options the optimization problem is defined. When set to "still completing input",
@@ -45,62 +46,48 @@ class Optimization(GeomBase):
                 placed_items_faces = []
                 number_n1 = number_n2 = number_n3 = number_n4 = area_connectors1 = area_connectors2 = area_connectors3 = area_connectors4 = 0
 
+
                 for i in placed_item_index:
                     placed_item_coor = []
                     for j in range(len(placed_items[i]["x_coor"])):
                         placed_coor = Point(placed_items[i]["x_coor"][j],placed_items[i]["y_coor"][j],0)
-                        placed_item_coor.append(placed_coor)
-                    placed_items_faces.append(Face(Polygon(placed_item_coor),color="red"))
+                        placed_item_coor[i].append(placed_coor)
+                    placed_items_faces.append(Face(Polygon(placed_item_coor[i]),color="red"))
 
                     if i in range(self.bracket.n1):
                         number_n1 = number_n1 + 1
-                        if number_n1 == 1:
-                            row = 0
                         area_connectors1 = area_connectors1 + self.bracket.optimize_items[1][0]/self.bracket.n1
                         worksheet.write(1,0,self.bracket.type1)
                         worksheet.write(1,1,number_n1)
                         worksheet.write(1,2,area_connectors1)
-                        x = placed_item_coor[i].x
-                        y = placed
+
+
                     elif i in range(self.bracket.n1,
                                     self.bracket.n1+self.bracket.n2):
                         number_n2 = number_n2 + 1
-                        if number_n2 == 1:
-                            row = 0
                         area_connectors2 = area_connectors2 + self.bracket.optimize_items[1][1]/self.bracket.n2
                         worksheet.write(2, 0, self.bracket.type2)
                         worksheet.write(2, 1, number_n2)
                         worksheet.write(2, 2, area_connectors2)
-                        connector2.write(row, 0, "position")
-                        for i in range(len(placed_item_coor)):
-                            connector2.write(row, i + 1, [placed_item_coor[i].x,placed_item_coor[i].y])
-                        row = row + 1
+
                     elif i in range(self.bracket.n1+self.bracket.n2,
                                     self.bracket.n1 + self.bracket.n2+self.bracket.n3):
                         number_n3 = number_n3 + 1
-                        if number_n3 == 1:
-                            row = 0
                         area_connectors3 = area_connectors3 + self.bracket.optimize_items[1][2]/self.bracket.n3
                         worksheet.write(3, 0, self.bracket.type3)
                         worksheet.write(3, 1, number_n3)
                         worksheet.write(3, 2, area_connectors3)
-                        connector3.write(row, 0, "position")
-                        for i in range(len(placed_item_coor)):
-                            connector3.write(row, i + 1, placed_item_coor[i])
-                        row = row + 1
+
                     elif i in range(self.bracket.n1+self.bracket.n2+self.bracket.n3,
                                     self.bracket.n1 + self.bracket.n2+self.bracket.n3+self.bracket.n4):
                         number_n4 = number_n4 + 1
-                        if number_n4 == 1:
-                            row = 0
                         area_connectors4 = area_connectors4 + self.bracket.optimize_items[1][3]/self.bracket.n4
                         worksheet.write(4, 0, self.bracket.type4)
                         worksheet.write(4, 1, number_n4)
                         worksheet.write(4, 2, area_connectors4)
-                        connector4.write(row, 0, "position")
-                        for i in range(len(placed_item_coor)):
-                            connector4.write(row, i + 1, placed_item_coor[i])
-                        row = row + 1
+
+
+
 
                 area_connectors = area_connectors1 + area_connectors2 + area_connectors3 + area_connectors4
                 type1 = f"{number_n1} of {self.bracket.type1} were placed"
