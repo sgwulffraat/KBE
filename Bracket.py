@@ -86,7 +86,6 @@ class Bracket(GeomBase):
 
     @Attribute
     def optimize_items(self):
-        input = []
         items1, area1 = connector_input_converter(self.type1, self.n1, self.tol, self.df, self.df2)
         items2, area2 = connector_input_converter(self.type2, self.n2, self.tol, self.df, self.df2)
         items3, area3 = connector_input_converter(self.type3, self.n3, self.tol, self.df, self.df2)

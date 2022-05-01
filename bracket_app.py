@@ -14,6 +14,17 @@ config = Config(
     default_visibility=["."],  # show all
     tools=[Tree(position="left", stacked= True),
            Viewer(position="middle"),
+           Wizard(position="right",
+                  widgets=[
+                      Tab("Bracket", children=[
+                          Group("Inputs",[
+                              MultiCheckbox("bracketshape",['rectangel', 'circle', 'file'])
+                          ])
+                      ])
+                  ]
+
+           ),
+
            Inspector(position="right")
            ]
 )
