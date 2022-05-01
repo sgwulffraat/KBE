@@ -7,7 +7,7 @@ from Bracket import Bracket
 from parapy.geom import Box
 
 uid = 'Bracket'
-obj = Box(1,2,3)
+obj = Bracket()
 
 api = ParaPyWebGUI(host_frontend=True, url_prefix='/api')
 api.add_instance(uid, obj)
@@ -19,6 +19,6 @@ if __name__ == '__main__':
     from parapy.lib.webgui.ui import open_webbrowser_when_served
     url_api = f"http://127.0.0.1:5000/"
     url_frontend = f"http://127.0.0.1:5000/?modelId={uid}"
-    open_webbrowser_when_served(url_api)
+    #open_webbrowser_when_served(url_api)
     open_webbrowser_when_served(url_frontend)
     app.run(threaded=False)
