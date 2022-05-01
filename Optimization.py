@@ -28,11 +28,10 @@ class Optimization(GeomBase):
             if self.optimization == "KnapsackPacking":
                 placed_item_index, placed_items = perform_experiments(self.optimization,self.solution_directory,load_experiments=False,container=self.to_be_optimized.optimize_container,items=self.to_be_optimized.optimize_items[0],num_experiments = self.number_of_different_solutions)
                 placed_items_faces = []
-                annotations = []
                 number_n1 = number_n2 = number_n3 = number_n4 = area_connectors = 0
 
-                for i in range(len(self.to_be_optimized.connectortypes)):
-                    setattr(self,self.to_be_optimized.connectortypes[i],f"0 of {self.to_be_optimized.connectortypes[i]} were placed")
+                for i in range(len(self.to_be_optimized.connectorlabels)):
+                    setattr(self,self.to_be_optimized.connectorlabels[i],f"0 of {self.to_be_optimized.connectorlabels[i]} were placed")
 
                 for i in placed_item_index:
                     placed_item_coor = []
@@ -59,29 +58,22 @@ class Optimization(GeomBase):
                         area_connectors = area_connectors + self.to_be_optimized.optimize_items[1][3]
 
                 print(area_connectors)
-                setattr(self,self.to_be_optimized.type1,f"{number_n1} of {self.to_be_optimized.type1} were placed")
-                setattr(self,self.to_be_optimized.type2, f"{number_n2} of {self.to_be_optimized.type2} were placed")
-                setattr(self,self.to_be_optimized.type3, f"{number_n3} of {self.to_be_optimized.type3} were placed")
-                setattr(self,self.to_be_optimized.type4, f"{number_n4} of {self.to_be_optimized.type4} were placed")
+                type1 = f"{number_n1} of {self.to_be_optimized.type1} were placed"
+                type2 = f"{number_n2} of {self.to_be_optimized.type2} were placed"
+                type3 = f"{number_n3} of {self.to_be_optimized.type3} were placed"
+                type4 = f"{number_n4} of {self.to_be_optimized.type4} were placed"
 
-
-
-                msg = f"""{self._20A},    {self._20B},\n{self._20C},    {self._20D},
-{self._20E},    {self._20F},\n{self._20G},    {self._20H}, 
-{self._20J},    {self._24A},\n{self._24B},    {self._24C}, 
-{self._24D},    {self._20E},\n{self._24F},    {self._24G}, 
-{self._24H},    {self._24J},\n{self.EN2},     {self.EN4},
-Total available area: Area of connectors: {area_connectors} [mm], """
+                msg = f"""{number_n1} of {self.to_be_optimized.type1} were placed, 
+{number_n2} of {self.to_be_optimized.type2} were placed,
+{number_n3} of {self.to_be_optimized.type3} were placed, 
+{number_n4} of {self.to_be_optimized.type4} were placed.
+Total available area: {self.to_be_optimized.bracket_area} [mm^2],
+Area of connectors: {area_connectors} [mm^2],
+Area utilization: {area_connectors / self.to_be_optimized.bracket_area * 100} %"""
                 warnings.warn(msg)
                 generate_warning("Optimization complete:", msg)
 
-                return placed_items_faces, self._20A, self._20B, self._20C, self._20D, self._20E, self._20F, self._20G,\
-                   self._20H , self._20J, self._24A, self._24B, self._24C, self._24D, self._24E, self._24F , self._24G,\
-                   self._24H, self._24J, self.EN2, self.EN4
-
-
-"""Pure Visualization of the results"""
-
+                return placed_items_faces, type1, type2, type3, type4
 
 
 if __name__ == "__main__":

@@ -31,23 +31,11 @@ def create_knapsack_packing_problem(container, items, can_print=False):
     # Problem
 
     max_weight = np.inf
-    container_shape = container #Polygon([(100,100), (215,100),(215,215),(100,215)])
+    container_shape = container
 
     container = Container(max_weight, container_shape)
 
-    connectors = items # [Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845),
-    #           Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845),
-    #           Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845),
-    #           Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845),
-    #           Item(Polygon([(0.0,0.0), (86.1,0.0), (86.1,15.2), (0,15.2)]),100/16,1309),
-    #           Item(Polygon([(0.0,0.0), (86.1,0.0), (86.1,15.2), (0,15.2)]),100/16,1309),
-    #           Item(Polygon([(0.0,0.0), (86.1,0.0), (86.1,15.2), (0,15.2)]),100/16,1309),
-    #           Item(Polygon([(0.0,0.0), (86.1,0.0), (86.1,15.2), (0,15.2)]),100/16,1309),
-    #           Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845),
-    #           Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845),
-    #           Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845),
-    #           Item(Polygon([(0.0,0.0), (55.6,0.0), (55.6,15.2), (0,15.2)]),100/21,845)] # items
-    print(connectors)
+    connectors = items
     problem = Problem(container, connectors)
     problems.append(problem)
 
@@ -178,8 +166,6 @@ def perform_experiments(problem_type, output_dir, load_experiments, container, i
 
                 # parameters for the experimentation; note: calculating internal times and value evolution can increase the overall time of algorithms (in a slight, almost neglectible way)
                 execution_num = num_experiments
-                if execution_num == 1:
-                    print("Remember to return execution_num to 10")
                 process_num = 10  # 1
                 calculate_internal_times = True
                 calculate_value_evolution = True
