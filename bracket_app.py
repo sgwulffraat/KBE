@@ -4,15 +4,15 @@ from parapy.lib.webgui.components import (
 from parapy.lib.webgui import *
 from flask import Flask
 from Bracket import Bracket
-from parapy.geom import Box
+from parapy.lib.webgui import display
 
 uid = 'Bracket'
 obj = Bracket()
 
 config = Config(
-    title="Hello World!",
+    title="Bracket generator",
     default_visibility=["."],  # show all
-    tools=[Tree(position="left"),
+    tools=[Tree(position="left", stacked= True),
            Viewer(position="middle"),
            Inspector(position="right")
            ]

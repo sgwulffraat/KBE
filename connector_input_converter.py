@@ -28,7 +28,7 @@ def connector_input_converter(type, n, tol, df, df2):
         if type[4:6] == '24':
             d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]] + 2 * tol
             area = np.pi * (d / 2) ** 2
-            item = Item(Circle((0, 0), d), df2["Area / contact"][df.index[df["Shell size"] == type[-1]][0]], 1)
+            item = Item(Circle((0, 0), d), df2["Area / contact"][df.index[df["Shell size"] == type[-1]][0]],1)
     if type[0:2] == "EN":
         if type[-1] == '2':
             l = 55.6 + 2 * tol
