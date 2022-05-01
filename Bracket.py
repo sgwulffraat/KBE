@@ -103,7 +103,7 @@ class Bracket(GeomBase):
     @Attribute
     def optimize_container(self):
         if self.bracketshape == "rectangle":
-            container = Polygon([(0.0, 0), (self.length, 0.0), (self.length, self.width), (0.0, self.width)])
+            container = Polygon([(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)])
         if self.bracketshape == "circle":
             container = Circle((0, 0), self.radius)
         if self.bracketshape == 'file':
