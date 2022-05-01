@@ -1,0 +1,24 @@
+from parapy.lib.webgui.components import (
+    Config, Group, Inspector, Intfield, Slider, Tab, Tree, Viewer,
+    Wizard, WorkArea, Step, MultiCheckbox)
+from parapy.lib.webgui import *
+from flask import Flask
+from Bracket import Bracket
+from parapy.geom import Box
+
+uid = 'Bracket'
+obj = Box(1,2,3)
+
+api = ParaPyWebGUI(host_frontend=True, url_prefix='/api')
+api.add_instance(uid, obj)
+
+app = Flask(__name__)
+api.init_app(app)
+
+if __name__ == '__main__':
+    from parapy.lib.webgui.ui import open_webbrowser_when_served
+    url_api = f"http://127.0.0.1:5000/"
+    url_frontend = f"http://127.0.0.1:5000/?modelId={uid}"
+    open_webbrowser_when_served(url_api)
+    open_webbrowser_when_served(url_frontend)
+    app.run(threaded=False)

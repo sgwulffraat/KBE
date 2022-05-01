@@ -4,8 +4,7 @@ from parapy.core.validate import *
 from parapy.geom import *
 from connector_input_converter import connector_input_converter
 from parapy.exchange import *
-from ref_frame import Frame
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Polygon
 from circle import Circle
 
 
@@ -57,14 +56,6 @@ class Bracket(GeomBase):
             length = None
         return length
 
-    # @file.getter
-    # def file(self):
-    #     if self.bracketshape == "file":
-    #         file = __file__
-    #     else:
-    #         file = None
-    #     return file
-
 
     @Attribute
     def optimize_items(self):
@@ -106,54 +97,15 @@ class Bracket(GeomBase):
     def bracket_from_file(self):
         return STEPReader(filename=self.filename, hidden = False if self.bracketshape == "file" else True, label = "Bracket")
 
-    # if bracketshape == "square":
-    #     @Part
-    #     def bracket(self):
-    #         return Box(width=self.width, length=self.width, height=self.height)
-    #
-    #     @Part
-    #     def reference_frame(self):
-    #         return Frame(pos=Position(location=getattr(self.bracket, 'cog'),
-    #                                   orientation=getattr(self.bracket, 'orientation')))
-    # elif bracketshape == "rectangle":
-    #     @Part
-    #     def bracket(self):
-    #         return Box(width=self.width, length=self.length, height=self.height)
-    #
-    #     @Part
-    #     def reference_frame(self):
-    #         return Frame(pos=Position(location=getattr(self.bracket, 'cog'),
-    #                                   orientation=getattr(self.bracket, 'orientation')))
-    # elif bracketshape == "circle":
-    #     @Part
-    #     def bracket(self):
-    #         return Cylinder(radius=self.radius, height=self.height,
-    #                         position=translate(rotate(self.position, 'x', 45), 'x', 250, 'y', 100, 'z', -300, ))
-    #
-    #     @Part
-    #     def reference_frame(self):
-    #         return Frame(pos=Position(location=getattr(self.bracket, 'cog'),
-    #                                   orientation=getattr(self.bracket, 'orientation')))
-    # elif bracketshape == "file":
-    #     @Part
-    #     def bracket(self):
-    #         return STEPReader(filename=self.filename)
-    #
-    #     @Part
-    #     def reference_frame(self):
-    #         return Frame(pos=Position(location=getattr(self.bracket.children[0].children[0].children[0], 'cog'),
-    #                                   orientation=getattr(self.bracket.children[0].children[0].children[0],
-    #                                                       'orientation')))
-    # else:
-    #     print("WARNING: Geometry was not defined!")
-
     @Part
     def step(self):
         return STEPWriter(trees=self.bracket_test)
+
 
 if __name__ == '__main__':
     from parapy.gui import display
 
     obj = Bracket()
     display([obj])
+
 
