@@ -5,7 +5,6 @@ from parapy.geom import *
 del parapy.geom.occ.curve.Circle
 from connector_input_converter import connector_input_converter
 from parapy.exchange import *
-from ref_frame import Frame
 from shapely.geometry import Polygon, Point
 from circle import Circle
 from connector_input_converter import read_connector_excel
@@ -13,7 +12,6 @@ from connector_input_converter import read_connector_excel
 #add no input warning
 #annotation
 #site
-#excel combination input
 
 
 class Bracket(GeomBase):
@@ -21,51 +19,26 @@ class Bracket(GeomBase):
     shapeoptions = ["rectangle", "circle" , "file"]
 
     #Connector input: various abbreviated connector types. See 'Connector details.xsl' for reference.
-    connectortypes = ["_20A", "_20B", "_20C", "_20D", "_20E", "_20F", "_20G",
-                      "_20H", "_20J", "_24A", "_24B", "_24C", "_24D", "_24E",
-                      "_24F", "_24G", "_24H", "_24J", "EN2", "EN4"]
+    connectorlabels, df, df2 = read_connector_excel('Connector details.xlsx', 'Connector details', 'Cavity specific area')
 
     #Input block bracket generator
     bracketshape = Input("rectangle",
                          widget=Dropdown(shapeoptions, labels=["Rectangular", "Circular",
                                                                "Create from file"]))
     filename = Input(__file__, widget=FilePicker)
+
     #Widget section connector type selection
-    type1 = Input("_20A", label="Type Connector",
-                  widget=Dropdown(connectortypes,labels=["MIL/20-A", "MIL/20-B",
-                                                         "MIL/20-C", "MIL/20-D", "MIL/20-E",
-                                                         "MIL/20-F", "MIL/20-G", "MIL/20-H",
-                                                         "MIL/20-J", "MIL/24-A", "MIL/24-B",
-                                                         "MIL/24-C", "MIL/24-D", "MIL/24-E",
-                                                         "MIL/24-F", "MIL/24-G", "MIL/24-H",
-                                                         "MIL/24-J", "EN/2", "EN/4"]))
+    type1 = Input("MIL/20-A", label="Type Connector",
+                  widget=Dropdown(connectorlabels))
     n1 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
-    type2 = Input("_20B", label="Type Connector",
-                  widget=Dropdown(connectortypes,labels=["MIL/20-A", "MIL/20-B",
-                                                         "MIL/20-C", "MIL/20-D", "MIL/20-E",
-                                                         "MIL/20-F", "MIL/20-G", "MIL/20-H",
-                                                         "MIL/20-J", "MIL/24-A", "MIL/24-B",
-                                                         "MIL/24-C", "MIL/24-D", "MIL/24-E",
-                                                         "MIL/24-F", "MIL/24-G", "MIL/24-H",
-                                                         "MIL/24-J", "EN/2", "EN/4"]))
+    type2 = Input("MIL/24-A", label="Type Connector",
+                  widget=Dropdown(connectorlabels))
     n2 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
-    type3 = Input("_20C", label="Type Connector",
-                  widget=Dropdown(connectortypes,labels=["MIL/20-A", "MIL/20-B",
-                                                         "MIL/20-C", "MIL/20-D", "MIL/20-E",
-                                                         "MIL/20-F", "MIL/20-G", "MIL/20-H",
-                                                         "MIL/20-J", "MIL/24-A", "MIL/24-B",
-                                                         "MIL/24-C", "MIL/24-D", "MIL/24-E",
-                                                         "MIL/24-F", "MIL/24-G", "MIL/24-H",
-                                                         "MIL/24-J", "EN/2", "EN/4"]))
+    type3 = Input("EN-2", label="Type Connector",
+                  widget=Dropdown(connectorlabels))
     n3 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
-    type4 = Input("_20D", label="Type Connector",
-                  widget=Dropdown(connectortypes,labels=["MIL/20-A", "MIL/20-B",
-                                                         "MIL/20-C", "MIL/20-D", "MIL/20-E",
-                                                         "MIL/20-F", "MIL/20-G", "MIL/20-H",
-                                                         "MIL/20-J", "MIL/24-A", "MIL/24-B",
-                                                         "MIL/24-C", "MIL/24-D", "MIL/24-E",
-                                                         "MIL/24-F", "MIL/24-G", "MIL/24-H",
-                                                         "MIL/24-J", "EN/2", "EN/4"]))
+    type4 = Input("EN-4", label="Type Connector",
+                  widget=Dropdown(connectorlabels))
     n4 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
 
     #Specify tolerance between connectors
@@ -112,11 +85,10 @@ class Bracket(GeomBase):
     @Attribute
     def optimize_items(self):
         input = []
-        # container =
-        items1, area1 = connector_input_converter(self.type1, self.n1, self.tol)
-        items2, area2 = connector_input_converter(self.type2, self.n2, self.tol)
-        items3, area3 = connector_input_converter(self.type3, self.n3, self.tol)
-        items4, area4 = connector_input_converter(self.type4, self.n4, self.tol)
+        items1, area1 = connector_input_converter(self.type1, self.n1, self.tol, self.df, self.df2)
+        items2, area2 = connector_input_converter(self.type2, self.n2, self.tol, self.df, self.df2)
+        items3, area3 = connector_input_converter(self.type3, self.n3, self.tol, self.df, self.df2)
+        items4, area4 = connector_input_converter(self.type4, self.n4, self.tol, self.df, self.df2)
         if area1 + area2 + area3 + area4 > self.bracket_area:
             msg = "Combined connector area larger than bracket area, impossible " \
                   "to fit all connectors. Try using less or smaller connectors"
