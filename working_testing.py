@@ -4,15 +4,10 @@ import time
 import numpy as np
 from math import ceil
 from multiprocessing import Pool
-from matplotlib import pyplot as plt
 from source import evolutionary
-#import greedy
-#import reversible
 from source.common_algorithm_functions import get_time_since, print_if_allowed
-from source.problem_solution import Container, Problem, Solution
+from source.problem_solution import Item, Container, Problem, Solution, Placed_Connector
 from source.shape_functions import get_shape_exterior_points, get_centroid
-#from parapy.exchange import *
-#from parapy.geom import *
 
 def create_knapsack_packing_problem(container, items, can_print=False):
 
@@ -229,19 +224,6 @@ def perform_experiments(problem_type, output_dir, load_experiments, container, i
                 max_value = max(subdict["values"])
                 for i, solution in enumerate(subdict["solutions"]):
                     if subdict["values"][i] == max_value:
-                        """solution.visualize(title_override=plotted_problem_name + " - " + algorithm_name + " solution",
-                                   show_plot=show_best_solution_plot,
-                                   save_path=problem_dir_path + "" + algorithm_name.lower() + "_exec" + str(
-                                       i + 1) + "_solution.png" if save_best_solution_plot else None,
-                                   show_item_value_and_weight=can_plots_show_value_and_weight,
-                                   show_value_weight_ratio_bar=can_plots_show_value_and_weight)"""
-                        fig = plt.figure()
-                        ax = fig.add_subplot(111)
-                        ax.set_aspect('equal')
-                        #x_container, y_container = get_shape_exterior_points(problem.container.shape)
-                        max_weight = problem.container.max_weight
-                        #container = {"item": "container", "x_container": x_container, "y_container": y_container, "max_weight_container": max_weight}
-                        # plt.plot(x_container,y_container, label = "container")
                         placed_connectors = dict()
                         for item_index in range(len(problem.items)):
                             if item_index in solution.placed_items:
@@ -252,7 +234,6 @@ def perform_experiments(problem_type, output_dir, load_experiments, container, i
                                 if position_offset != (0, 0):
                                     x = [x_i + position_offset[0] for x_i in x]
                                     y = [y_i + position_offset[1] for y_i in y]
-                                plt.plot(x, y, label='%s' % (item_index))
                                 centroid = get_centroid(shape)
                                 value = problem.items[item_index].value
                                 if value / int(value) == 1:
@@ -262,11 +243,7 @@ def perform_experiments(problem_type, output_dir, load_experiments, container, i
                                     weight = int(weight)
                                 placed_connectors[item_index] = {"item_index": item_index, "x_coor": x, "y_coor": y,
                                                              "centroid": centroid, "value": value, "weight": weight}
-                                #print(placed_connectors[item_index])
                         print(placed_connectors)
-                        #plt.show()
-                        # print(placed_connectors)
-
                         break
 
         return solution.placed_items, placed_connectors
