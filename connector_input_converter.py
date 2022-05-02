@@ -1,6 +1,6 @@
-from problem_solution import Item
+from source.problem_solution import Item
 from shapely.geometry import Polygon
-from circle import Circle
+from source.circle import Circle
 import numpy as np
 import pandas as pd
 

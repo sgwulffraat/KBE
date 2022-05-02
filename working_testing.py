@@ -6,7 +6,7 @@ from math import ceil
 from multiprocessing import Pool
 from source import evolutionary
 from source.common_algorithm_functions import get_time_since, print_if_allowed
-from source.problem_solution import Item, Container, Problem, Solution, Placed_Connector
+from source.problem_solution import Container, Problem, Solution
 from source.shape_functions import get_shape_exterior_points, get_centroid
 
 def create_knapsack_packing_problem(container, items, can_print=False):

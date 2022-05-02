@@ -9,7 +9,7 @@ import sys
 sys.path.append('source')
 from connector_input_converter import connector_input_converter, read_connector_excel
 from shapely.geometry import Polygon
-from circle import Circle
+from source.circle import Circle
 from parapy.geom import TextLabel
 
 class Bracket(GeomBase):
