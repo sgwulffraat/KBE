@@ -6,8 +6,8 @@ import time
 import numpy as np
 import greedy
 from circle import Circle
-from common_algorithm_functions import get_time_since
-from ellipse import Ellipse
+from source.common_algorithm_functions import get_time_since
+from source.ellipse import Ellipse
 from shape_functions import get_bounds, create_random_polygon, do_shapes_intersect, \
     create_random_triangle_in_rectangle_corner, does_shape_contain_other, \
     create_random_quadrilateral_in_rectangle_corners

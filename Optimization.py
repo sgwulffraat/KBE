@@ -51,8 +51,8 @@ class Optimization(GeomBase):
                     placed_item_coor = []
                     for j in range(len(placed_items[i]["x_coor"])):
                         placed_coor = Point(placed_items[i]["x_coor"][j],placed_items[i]["y_coor"][j],0)
-                        placed_item_coor[i].append(placed_coor)
-                    placed_items_faces.append(Face(Polygon(placed_item_coor[i]),color="red"))
+                        placed_item_coor.append(placed_coor)
+                    placed_items_faces.append(Face(Polygon(placed_item_coor),color="red"))
 
                     if i in range(self.bracket.n1):
                         number_n1 = number_n1 + 1

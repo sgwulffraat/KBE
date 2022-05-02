@@ -1,6 +1,6 @@
 This is an application to optimize the placement of EWIS connectors as commissioned by GKN Fokker Elmo.
 The application is created by Cor Zoon and Stijn Wulffraat.
-The user must possess a working parapy license in order for this application to work.
+The user must possess a working parapy license in order for this application to work. The file to run is 'Optimization.py'
 
 The user can use an existing bracket geometry as a STEP file as input or can generate a simple circular or rectangular bracket within the application.
 After the bracket is either loaded in or specified, the connectors can be selected. Right now only a selection of 4 different connectors can be used as an input for the optimization but this can be extended on request in the future.
@@ -12,8 +12,8 @@ The ADD SETTING HERE can be adjusted to increase or decrease to total number of 
 
 The following packages must be installed:
 Shapely 1.7.1 (newer verions result in errors)
-pandas
-numpy
-pickle
-Parapy
-openpyxl
+pandas (newest version)
+numpy (newest version)
+pickle (newest version)
+Parapy (newest version)
+openpyxl (newest version)

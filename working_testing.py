@@ -4,19 +4,13 @@ import time
 import numpy as np
 from math import ceil
 from multiprocessing import Pool
-import pandas as pd
 from matplotlib import pyplot as plt
-from shapely.geometry import Polygon, MultiPolygon, Point
-import evolutionary
+from source import evolutionary
 #import greedy
 #import reversible
-import shape_functions
-from circle import Circle
-from common_algorithm_functions import get_time_since, visualize_boxplot_for_data_sequence, print_if_allowed, \
-    visualize_plot, visualize_bar_plot, add_newlines_by_spaces, get_stats
-from ellipse import Ellipse
-from problem_solution import Item, Container, Problem, Solution, Placed_Connector
-from shape_functions import get_shape_exterior_points, get_centroid
+from source.common_algorithm_functions import get_time_since, print_if_allowed
+from source.problem_solution import Container, Problem, Solution
+from source.shape_functions import get_shape_exterior_points, get_centroid
 #from parapy.exchange import *
 #from parapy.geom import *
 

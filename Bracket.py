@@ -3,11 +3,15 @@ from parapy.core.widgets import Dropdown, FilePicker
 from parapy.core.validate import *
 from parapy.geom import *
 del parapy.geom.occ.curve.Circle
-from connector_input_converter import connector_input_converter, read_connector_excel
 from parapy.exchange import *
-from shapely.geometry import Polygon, Point
-from circle import Circle
-from parapy.geom import TextLabel, Leader
+
+import sys
+sys.path.append('source')
+from connector_input_converter import connector_input_converter, read_connector_excel
+from shapely.geometry import Polygon
+from source.circle import Circle
+from parapy.geom import TextLabel
+
 
 #add no input warning
 #annotation

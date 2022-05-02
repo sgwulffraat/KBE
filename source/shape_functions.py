@@ -4,7 +4,7 @@ import random
 import numpy as np
 from shapely.geometry import LinearRing, MultiPolygon, Point, Polygon, MultiPoint, MultiLineString
 from circle import Circle, VISUALIZATION_RESOLUTION
-from ellipse import Ellipse
+from source.ellipse import Ellipse
 
 
 def get_bounds(shape):
