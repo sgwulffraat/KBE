@@ -1,6 +1,8 @@
 import copy
 import random
 import time
+import sys
+sys.path.append('source')
 from source.problem_solution import Solution, get_bounds
 from source.common_algorithm_functions import get_index_after_weight_limit, get_time_since
 

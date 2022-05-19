@@ -135,7 +135,7 @@ Area utilization: {area_connectors / self.bracket.bracket_area * 100} %"""
 
 if __name__ == "__main__":
     from parapy.gui import display
-    obj = Optimization()
+    obj = Optimization(label = 'Optimization')
 
     display(obj)
 

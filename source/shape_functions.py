@@ -2,8 +2,10 @@ import copy
 import math
 import random
 import numpy as np
+import sys
+sys.path.append('source')
 from shapely.geometry import LinearRing, MultiPolygon, Point, Polygon, MultiPoint, MultiLineString
-from circle import Circle, VISUALIZATION_RESOLUTION
+from source.circle import Circle, VISUALIZATION_RESOLUTION
 from source.ellipse import Ellipse
 
 

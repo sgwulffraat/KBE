@@ -1,0 +1,10 @@
+The way you set up the model is quite inconvenient and limit a lot the interactivity: nothing is visualized unless you perform first the optimization.
+Thus a long time is required to see at least something. You should allow the user to attempt a preliminary placement of brackets, or come out with some simple heuristics and then, on demand, run the optimization.
+After the optimization (which often needs to be cut it short in view of time) is finished, you should allow the user to further adjust the design, e.g. using the GUI manipulators (look for that in the Parapy documentation)
+
+- Implementation of Manipulable
+- simpler optimization
+- structural analysis
+- input file
+- pep8 fix (shorter lines, commenting, etc)
+- UML & Activity diagram

@@ -2,7 +2,9 @@ import numpy as np
 from shapely import affinity
 from shapely.geometry import Point
 from shapely.geometry.base import BaseGeometry
-import problem_solution
+import sys
+sys.path.append('source')
+import source.problem_solution
 
 # resolution of the polygon approximating a circle then scaled to approximate the ellipsis; according to Shapely documentation, a resolution of 16 allows to cover 99.8% of the circle's area (https://shapely.readthedocs.io/en/stable/manual.html#object.buffer)
 RESOLUTION = 16

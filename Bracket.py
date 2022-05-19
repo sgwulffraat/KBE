@@ -4,7 +4,6 @@ from parapy.core.validate import *
 from parapy.geom import *
 del parapy.geom.occ.curve.Circle
 from parapy.exchange import *
-
 import sys
 sys.path.append('source')
 from connector_input_converter import connector_input_converter, read_connector_excel

@@ -4,7 +4,9 @@ from scipy.interpolate import interpolate
 from shapely import affinity
 import matplotlib.pyplot as plt
 from shapely.geometry import LineString
-from shape_functions import *
+import sys
+sys.path.append('source')
+from source.shape_functions import *
 
 
 # set plotting font and sizes
