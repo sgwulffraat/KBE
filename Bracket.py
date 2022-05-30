@@ -2,43 +2,33 @@ from parapy.core import *
 from parapy.core.widgets import Dropdown, FilePicker
 from parapy.core.validate import *
 from parapy.geom import *
-del parapy.geom.occ.curve.Circle
 from parapy.exchange import *
-import sys
-sys.path.append('source')
+from connector import Connector
 from connector_input_converter import connector_input_converter, read_connector_excel
 from shapely.geometry import Polygon
 from source.circle import Circle
 from parapy.geom import TextLabel
-from Manipulation import ManipulateAnything
-# from connector import Connector
-from parapy.gui.manipulation import (
-    EndEvent, ManipulableBase)
-from parapy.gui.manipulation.modes import ALL_TRANSFORMATIONS
-from parapy.geom import VZ
-from parapy.gui import Manipulable
-from parapy.gui.manipulation import EndEvent
-from parapy.gui.manipulation.modes import (
-    PRIMARY_AXIS_PLANAR_TRANSLATIONS, PRIMARY_AXIS_ROTATIONS,
-    Translation)
-
-
+import numpy as np
+import sys
+del parapy.geom.occ.curve.Circle
+sys.path.append('source')
 
 
 class Bracket(GeomBase):
-    #Shape input: rectangle, circle or file
-    shapeoptions = ["rectangle", "circle" , "file"]
+    # Shape input: rectangle, circle or file
+    shapeoptions = ["rectangle", "circle", "file"]
 
-    #Connector input: various abbreviated connector types. See 'Connector details.xsl' for reference.
-    connectorlabels, df, df2 = read_connector_excel('Connector details.xlsx', 'Connector details', 'Cavity specific area')
+    # Connector input: various abbreviated connector types. See 'Connector details.xsl' for reference.
+    connectorlabels, df, df2 = read_connector_excel('Connector details.xlsx', 'Connector details',
+                                                    'Cavity specific area')
 
-    #Input block bracket generator
+    # Input block bracket generator
     bracketshape = Input("rectangle",
                          widget=Dropdown(shapeoptions, labels=["Rectangular", "Circular",
                                                                "Create from file"]))
     filename = Input(__file__, widget=FilePicker)
 
-    #Widget section connector type selection
+    # Widget section connector type selection
     type1 = Input("MIL/20-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
     n1 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
@@ -52,21 +42,16 @@ class Bracket(GeomBase):
                   widget=Dropdown(connectorlabels))
     n4 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
 
-    #Specify tolerance between connectors
+    # Specify tolerance between connectors
     tol = Input(3, label="Tolerance", validator=Positive(incl_zero=True))
 
-    #height or thickness of the to be designed bracket
+    # Height or thickness of the to be designed bracket
     height = Input(1, validator=Positive(incl_zero=True), label="Thickness of bracket")
 
-    #Allow pop up
-    popup_gui = Input(True, label= "Allow pop-up")
+    # Allow pop up
+    popup_gui = Input(True, label="Allow pop-up")
 
     connectors = []
-
-    @Attribute
-    def connectorman(self):
-        if len(self.connectors)>0:
-            connect = ManipulateAnything(to_manipulate = self.connectors)
 
     @Input
     def radius(self):
@@ -100,6 +85,8 @@ class Bracket(GeomBase):
             bracket_area = np.pi * self.radius**2
         if self.bracketshape == "file":
             bracket_area = self.bracket_from_file.children[0].children[0].children[0].area
+        else:
+            bracket_area = 0
         return bracket_area
 
     @Attribute
@@ -134,7 +121,7 @@ class Bracket(GeomBase):
 
     @action(label="Add connector")
     def add_connector(self):
-        self.connectors.append(Box())
+        self.connectors.append(Connector(connectorlabels=self.connectorlabels))
 
     # @Part
     # def connector(self):
@@ -142,19 +129,19 @@ class Bracket(GeomBase):
 
     @Part
     def bracket_box(self):
-        return Box(width=self.width, length=self.length, height=self.height, centered = True ,
-                   hidden = False if self.bracketshape == "rectangle" else True, label = "Bracket")
+        return Box(width=self.width, length=self.length, height=self.height, centered=True,
+                   hidden=False if self.bracketshape == "rectangle" else True, label="Bracket")
 
     @Part
     def bracket_cylinder(self):
-        return Cylinder(radius=self.radius, height=self.height, centered = False,
-                        hidden = False if self.bracketshape == "circle" else True,
-                        label = "Bracket")
+        return Cylinder(radius=self.radius, height=self.height, centered=False,
+                        hidden=False if self.bracketshape == "circle" else True,
+                        label="Bracket")
 
     @Part
     def bracket_from_file(self):
         return STEPReader(filename=self.filename,
-                          hidden = False if self.bracketshape == "file" else True, label = "Bracket")
+                          hidden=False if self.bracketshape == "file" else True, label="Bracket")
 
     @Part
     def step(self):
@@ -182,6 +169,7 @@ def generate_warning(warning_header, msg):
     window.deiconify()
     window.destroy()
     window.quit()
+
 
 if __name__ == '__main__':
     from parapy.gui import display
