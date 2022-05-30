@@ -23,26 +23,56 @@ def connector_input_converter(type, n, tol, df, df2):
     if type[0:3] == "MIL":
         if type[4:6] == '20':
             d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]] + 2 * tol
+            size = [d]
             area = d**2
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 100/df2["Area / contact"][df.index[df["Shell size"] == type[-1]][0]], 1)
         if type[4:6] == '24':
             d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]] + 2 * tol
+            size = [d, d]
             area = np.pi * (d / 2) ** 2
             item = Item(Circle((0, 0), d/2), df2["Area / contact"][df.index[df["Shell size"] == type[-1]][0]],1)
     elif type[0:2] == "EN":
         if type[-1] == '2':
             l = 55.6 + 2 * tol
             w = 15.2 + 2 * tol
+            size = [l, w]
             area = l * w
             item = Item(Polygon([(0.0, 0.0), (l, 0.0), (l, w), (0, w)]), 100/df2["Area / contact"][df.index[df["Shell size"] == str(type[-1]+" module")][0]], 1)
         if type[-1] == '4':
             l = 86.1 + 2 * tol
             w = 15.2 + 2 * tol
+            size = [l, w]
             area = l * w
             item = Item(Polygon([(0.0, 0.0), (l, 0.0), (l, w), (0, w)]), 100/df2["Area / contact"][df.index[df["Shell size"] == str(type[-1]+" module")][0]], 1)
     else:
         item = "Undefined item"
+        size = []
     for i in range(0,n):
         items.append(item)
     total_area = n*area
     return items, total_area
+
+def connector_class_input_converter(type, n, tol, df, df2):
+    dimensions = []
+    if type[0:3] == "MIL":
+        if type[4:6] == '20':
+            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]] + 2 * tol
+            size = [d]
+        if type[4:6] == '24':
+            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]] + 2 * tol
+            size = [d, d]
+    elif type[0:2] == "EN":
+        if type[-1] == '2':
+            l = 55.6 + 2 * tol
+            w = 15.2 + 2 * tol
+            size = [l, w]
+        if type[-1] == '4':
+            l = 86.1 + 2 * tol
+            w = 15.2 + 2 * tol
+            size = [l, w]
+    else:
+        item = "Undefined item"
+        size = []
+    for i in range(0,n):
+        dimensions.append(size)
+    return dimensions
