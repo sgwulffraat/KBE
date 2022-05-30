@@ -10,6 +10,20 @@ from connector_input_converter import connector_input_converter, read_connector_
 from shapely.geometry import Polygon
 from source.circle import Circle
 from parapy.geom import TextLabel
+from Manipulation import ManipulateAnything
+# from connector import Connector
+from parapy.gui.manipulation import (
+    EndEvent, ManipulableBase)
+from parapy.gui.manipulation.modes import ALL_TRANSFORMATIONS
+from parapy.geom import VZ
+from parapy.gui import Manipulable
+from parapy.gui.manipulation import EndEvent
+from parapy.gui.manipulation.modes import (
+    PRIMARY_AXIS_PLANAR_TRANSLATIONS, PRIMARY_AXIS_ROTATIONS,
+    Translation)
+
+
+
 
 class Bracket(GeomBase):
     #Shape input: rectangle, circle or file
@@ -39,13 +53,20 @@ class Bracket(GeomBase):
     n4 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
 
     #Specify tolerance between connectors
-    tol = Input(0.3, label="Tolerance", validator=Positive(incl_zero=True))
+    tol = Input(3, label="Tolerance", validator=Positive(incl_zero=True))
 
     #height or thickness of the to be designed bracket
     height = Input(1, validator=Positive(incl_zero=True), label="Thickness of bracket")
 
     #Allow pop up
     popup_gui = Input(True, label= "Allow pop-up")
+
+    connectors = []
+
+    @Attribute
+    def connectorman(self):
+        if len(self.connectors)>0:
+            connect = ManipulateAnything(to_manipulate = self.connectors)
 
     @Input
     def radius(self):
@@ -111,9 +132,17 @@ class Bracket(GeomBase):
             container = Polygon(points)
         return container
 
+    @action(label="Add connector")
+    def add_connector(self):
+        self.connectors.append(Box())
+
+    # @Part
+    # def connector(self):
+    #     return Connector(type= self.type1, n = self.n1, hidden = True if self.n1 == 0 else False, label = self.type1)
+
     @Part
     def bracket_box(self):
-        return Box(width=self.width, length=self.length, height=self.height, centered = False ,
+        return Box(width=self.width, length=self.length, height=self.height, centered = True ,
                    hidden = False if self.bracketshape == "rectangle" else True, label = "Bracket")
 
     @Part

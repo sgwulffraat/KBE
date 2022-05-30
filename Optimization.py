@@ -109,16 +109,16 @@ class Optimization(GeomBase):
                 worksheet.write(6,1,area_connectors/self.bracket.bracket_area)
 
                 msg = f"""{number_n1} of {self.bracket.type1} were placed, 
-{number_n2} of {self.bracket.type2} were placed,
-{number_n3} of {self.bracket.type3} were placed, 
-{number_n4} of {self.bracket.type4} were placed.
-Total available area: {self.bracket.bracket_area} [mm^2],
-Area of connectors: {area_connectors} [mm^2],
-Area utilization: {area_connectors / self.bracket.bracket_area * 100} %"""
-                warnings.warn(msg)
-                generate_warning("Optimization complete:", msg)
-                workbook.close()
-                return placed_items_faces, type1, type2, type3, type4
+                {number_n2} of {self.bracket.type2} were placed,
+                {number_n3} of {self.bracket.type3} were placed, 
+                {number_n4} of {self.bracket.type4} were placed.
+                Total available area: {self.bracket.bracket_area} [mm^2],
+                Area of connectors: {area_connectors} [mm^2],
+                Area utilization: {area_connectors / self.bracket.bracket_area * 100} %"""
+                                warnings.warn(msg)
+                                generate_warning("Optimization complete:", msg)
+                                workbook.close()
+                                return placed_items_faces, type1, type2, type3, type4
 
     @Part
     def connectors(self):
