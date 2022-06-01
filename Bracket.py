@@ -84,10 +84,6 @@ class Bracket(GeomBase):
     #         return ManipulateAnything(to_manipulate=self.connectors_list)
 
     @Attribute
-    def manipulate_con(self):
-        return ManipulateAnything(to_manipulate=self.connector_part)
-
-    @Attribute
     def bracket_area(self):
         if self.bracketshape == "rectangle":
             bracket_area = self.width * self.length
@@ -129,29 +125,35 @@ class Bracket(GeomBase):
             container = Polygon(points)
         return container
 
-    # @action(label="Add connector")
-    # def add_connector(self):
-    #     self.connectors_list.append(Connector(c_type=self.type1, tol=self.tol, df=self.df))
-
     @Part
     def connector_part(self):
-        return Connector(c_type=self.type1, tol=self.tol, df=self.df)
+        return Connector(c_type=self.type1,
+                         tol=self.tol,
+                         df=self.df,
+                         n=self.n1)
 
     @Part
     def bracket_box(self):
-        return Box(width=self.width, length=self.length, height=self.height, centered=True,
-                   hidden=False if self.bracketshape == "rectangle" else True, label="Bracket")
+        return Box(width=self.width,
+                   length=self.length,
+                   height=self.height,
+                   centered=True,
+                   hidden=False if self.bracketshape == "rectangle" else True,
+                   label="Bracket")
 
     @Part
     def bracket_cylinder(self):
-        return Cylinder(radius=self.radius, height=self.height, centered=False,
+        return Cylinder(radius=self.radius,
+                        height=self.height,
+                        centered=False,
                         hidden=False if self.bracketshape == "circle" else True,
                         label="Bracket")
 
     @Part
     def bracket_from_file(self):
         return STEPReader(filename=self.filename,
-                          hidden=False if self.bracketshape == "file" else True, label="Bracket")
+                          hidden=False if self.bracketshape == "file" else True,
+                          label="Bracket")
 
     @Part
     def step(self):
@@ -162,7 +164,6 @@ class Bracket(GeomBase):
         return TextLabel(text="Bracket",
                          position=self.bracket_box.cog,
                          overlay=True)
-
 
 
 def generate_warning(warning_header, msg):
@@ -184,6 +185,5 @@ def generate_warning(warning_header, msg):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = Bracket()
-    obj2 = ManipulateAnything(to_manipulate=Connector(c_type=obj.type1, tol=obj.tol, df=obj.df))
-    display([obj, obj2])
+    obj = ManipulateAnything(to_manipulate=Bracket())
+    display([obj])

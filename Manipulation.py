@@ -1,8 +1,7 @@
 from parapy.core import Base, Input, on_event, Attribute
-from parapy.geom import Compound, Position, Box
+from parapy.geom import Compound, Position, Box, Vector
 from parapy.gui.events import EVT_RIGHT_CLICK_OBJECT
-from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent
-
+from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent, PlanarTranslation, Translation
 
 
 class ManipulateAnything(Base):
@@ -18,9 +17,11 @@ class ManipulateAnything(Base):
         return edges
 
     @on_event(EVT_RIGHT_CLICK_OBJECT)
-    def on_click(self, evt, obj):
-        if evt.selected[0] == Bracket.bracket_box or evt.selected[0] == Bracket.bracket_cylinder or evt.selected[0] == Bracket.bracket_from_file:
-            exit
+    def on_click(self, evt):
+        if evt.selected[0] == self.to_manipulate.bracket_box \
+                or evt.selected[0] == self.to_manipulate.bracket_cylinder \
+                or evt.selected[0] == self.to_manipulate.bracket_from_file:
+            return print("Bracket is not manipulable")
         elif evt.multiple:
             self.start_manipulation_many(evt.selected, evt.source)
         else:
@@ -57,7 +58,7 @@ class ManipulateAnything(Base):
                 return False
         return True
 
-    def start_manipulation_many(self, objs,on_motion, viewer):
+    def start_manipulation_many(self, objs, viewer):
         if self.are_orientations_aligned((o.orientation for o in objs)):
             basis_pos = objs[0].position
         else:
@@ -85,9 +86,13 @@ class ManipulateAnything(Base):
         return self._start_manipulation(obj, on_submit, on_motion, viewer)
 
     def _start_manipulation(self, obj, on_submit, on_motion, viewer):
-        gizmo = Gizmo(size=20, position=obj.position)
-        obj = Manipulation(obj=obj, viewer=viewer, on_submit=on_submit, on_motion=on_motion,
-                           ghost=obj, gizmo=gizmo, )
+        gizmo = Gizmo(size=20, position=obj.position, modes=[Translation(axis=Vector(1,0,0))])
+        obj = Manipulation(obj=obj,
+                           viewer=viewer,
+                           on_submit=on_submit,
+                           on_motion=on_motion,
+                           ghost=obj,
+                           gizmo=gizmo, )
         obj.start()
 
     def _on_submit(self, evt: EndEvent, obj):
@@ -100,7 +105,6 @@ if __name__ == '__main__':
     from parapy.gui import display
 
     object2 = Bracket()
-    obj3 = ManipulateAnything(to_manipulate=Connector(c_type="Mil"))
-
+    # obj3 = ManipulateAnything(to_manipulate=Connector(c_type="Mil"))
 
     display(obj3)

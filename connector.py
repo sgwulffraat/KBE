@@ -7,6 +7,7 @@ class Connector(GeomBase):
     c_type = Input()
     tol = Input()
     df = Input()
+    n = Input()
     height = Input(1)
 
     @Attribute
@@ -26,17 +27,19 @@ class Connector(GeomBase):
         return Box(width=self.dim[0] if len(self.dim) == 2 else 0,
                    length=self.dim[0] if len(self.dim) == 2 else 0,
                    height=self.height,
-                   centered=False,
+                   centered=True,
                    hidden=False if self.shape == "square" else True,
-                   label=self.c_type)
+                   label=self.c_type,
+                   quantify=self.n)
 
     @Part
     def circular_connector(self):
         return Cylinder(radius=self.dim[0] if len(self.dim) == 1 else 0,
                         height=self.height,
-                        centered=False,
+                        centered=True,
                         hidden=False if self.shape == "circle" else True,
-                        label=self.c_type)
+                        label=self.c_type,
+                        quantify=self.n)
 
     @Part
     def rectangle_connector(self):
@@ -45,4 +48,5 @@ class Connector(GeomBase):
                    height=self.height,
                    centered=False,
                    hidden=False if self.shape == "rectangle" else True,
-                   label=self.c_type)
+                   label=self.c_type,
+                   quantify=self.n)

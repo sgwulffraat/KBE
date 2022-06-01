@@ -1,32 +1,94 @@
-from parapy.core import Attribute
-from parapy.geom import Box
-from parapy.gui import Manipulable
-from parapy.gui.manipulation import EndEvent, MotionEvent
-from connector import Connector
-from connector_input_converter import read_connector_excel
+import typing
 
-connectorlabels, df, df2 = read_connector_excel('Connector details.xlsx', 'Connector details',
-                                                'Cavity specific area')
+from parapy.core import HiddenPart, Input, Attribute, on_event
+from parapy.core.abstract import DrawableParaPyObject
+from parapy.geom import Cube, VZ, VX, VY
+from parapy.geom.occ.drawable import DrawableShape
+from parapy.gui.events import EVT_RIGHT_CLICK_OBJECT
+from parapy.gui.manipulation import EndEvent, ManipulationMode, Manipulation
+from parapy.gui.manipulation.gizmo import GizmoBase
+from parapy.gui.manipulation.modes import Translation
 
-class PlaneBoundCube(Connector, Manipulable):
+
+class FaceGizmoHandleWrapper(DrawableShape):
+    face = Input()
+    mode: ManipulationMode = Input()
+    boundary_color = Input('black')
+    selection_sensitivity = Input(1)
+    line_thickness = 1
+
+    @property
+    def _Handle_AIS_InteractiveObject(self):
+        return self.face._Handle_AIS_InteractiveObject
+
+
+class CubeGizmo(GizmoBase):
+    cube: Cube = Input()
+
+    # all in_tree slots will be automatically picked up by the base class'
+    # `GizmoBase.shapes` slot. But in our case we want to take some faces
+    # and set their colors, so we can just override the method.
+    @Attribute
+    def shapes(self) -> typing.Sequence[DrawableShape]:
+        cube = self.cube
+        faces = []
+        for face in [cube.top_face, cube.bottom_face]:
+            faces.append(FaceGizmoHandleWrapper(face=face, color='red',
+                                                mode=Translation(VZ)))
+        for face in [cube.left_face, cube.right_face]:
+            faces.append(FaceGizmoHandleWrapper(face=face, color='green',
+                                                mode=Translation(VX)))
+        for face in [cube.front_face, cube.rear_face]:
+            faces.append(FaceGizmoHandleWrapper(face=face, color='blue',
+                                                mode=Translation(VY)))
+        return faces
+
+    # we need to override this method to tell to the gizmo which mode should
+    # be activated depending on which face is being selected.
+    def interactive_shape_to_manipulation_mode(
+            self, detected_object: DrawableParaPyObject) -> \
+            typing.Optional[ManipulationMode]:
+
+        if isinstance(detected_object, FaceGizmoHandleWrapper):
+            return detected_object.mode
+
+
+class CustomManipulable(Cube):
     label = 'right-click me in the viewer to start manipulating'
-    centered = True
 
-    @Attribute(in_tree=True)
-    def boundary(self):
-        edges = Box(400, 400, 20, centered=True, color='blue', transparency=.6).edges
-        for e in edges:
-            e.color = 'red'
-        return edges
+    @HiddenPart
+    def gizmo(self):
+        return CubeGizmo(position=self.position,
+                         cube=self)
 
-    def on_motion(self, evt: MotionEvent):
-        current_position = evt.current_position
-        if -200 > current_position.y or current_position.y > 200:
-            evt.Veto()
-        if -200 > current_position.x or current_position.x > 200:
-            evt.Veto()
-        if -10 > current_position.z or current_position.z > 10:
-            evt.Veto()
+    def create_manipulation(self, viewer):
+        """
+        :param parapy.gui.viewer.Viewer viewer: viewer in which the
+            manipulation takes place.
+        :rtype: Manipulation
+        """
+        return Manipulation(obj=self,
+                            viewer=viewer,
+                            gizmo=self.gizmo,
+                            # uncomment this to make the object itself act as
+                            # its ghost, meaning that the original shape will
+                            # move along with the gizmo and at all effects,
+                            # in this case, disappear until on_end.
+                            # ghost=self,
+                            reference_position=self.position,
+                            on_submit=self.on_submit)
+
+    def start(self, viewer):
+        """Start to make_manipulation this Manipulable object inside
+        ``viewer``."""
+        viewer = viewer
+
+        manipulation = self.create_manipulation(viewer)
+        manipulation.start()
+
+    @on_event(EVT_RIGHT_CLICK_OBJECT)
+    def _on_left_click(self, evt):
+        self.start(evt.source)
 
     def on_submit(self, evt: EndEvent):
         self.position = evt.current_position
@@ -35,5 +97,4 @@ class PlaneBoundCube(Connector, Manipulable):
 if __name__ == '__main__':
     from parapy.gui import display
 
-    obj2 = PlaneBoundCube(c_type="MIL/20-A", tol=3, df=df)
-    display(obj2)
+    display(CustomManipulable(1))
