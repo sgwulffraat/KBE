@@ -4,6 +4,7 @@ from parapy.gui.events import EVT_RIGHT_CLICK_OBJECT
 from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent
 
 
+
 class ManipulateAnything(Base):
     label = 'right-click me in the viewer to manipulate selected'
 
@@ -96,7 +97,8 @@ if __name__ == '__main__':
     from parapy.geom import Cube
     from parapy.gui import display
 
-    obj2 = Bracket()
-    obj = ManipulateAnything(to_manipulate=Bracket().connectors)
+    object2 = Bracket()
+    obj3 = ManipulateAnything(to_manipulate=object2.connectors)
 
-    display(obj2, obj)
+
+    display(obj3)

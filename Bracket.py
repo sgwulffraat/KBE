@@ -1,16 +1,16 @@
 from parapy.core import *
 from parapy.core.widgets import Dropdown, FilePicker
 from parapy.core.validate import *
-from parapy.geom import *
+from parapy.geom import Box, Cylinder, GeomBase
 from parapy.exchange import *
 from connector import Connector
 from connector_input_converter import connector_input_converter, read_connector_excel
 from shapely.geometry import Polygon
 from source.circle import Circle
 from parapy.geom import TextLabel
+from Manipulation import ManipulateAnything
 import numpy as np
 import sys
-del parapy.geom.occ.curve.Circle
 sys.path.append('source')
 
 
@@ -31,6 +31,7 @@ class Bracket(GeomBase):
     # Widget section connector type selection
     type1 = Input("MIL/20-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
+    print(type1)
     n1 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
     type2 = Input("MIL/24-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
@@ -51,7 +52,8 @@ class Bracket(GeomBase):
     # Allow pop up
     popup_gui = Input(True, label="Allow pop-up")
 
-    connectors = []
+    # Connectors empty list
+    connectors_list = []
 
     @Input
     def radius(self):
@@ -76,6 +78,15 @@ class Bracket(GeomBase):
         else:
             length = None
         return length
+
+    # @Attribute
+    # def connectors(self):
+    #     if len(self.connectors_list) > 0:
+    #         return ManipulateAnything(to_manipulate=self.connectors_list)
+
+    @Attribute
+    def manipulate_con(self):
+        return ManipulateAnything(to_manipulate=self.connector_part)
 
     @Attribute
     def bracket_area(self):
@@ -119,13 +130,13 @@ class Bracket(GeomBase):
             container = Polygon(points)
         return container
 
-    @action(label="Add connector")
-    def add_connector(self):
-        self.connectors.append(Connector(connectorlabels=self.connectorlabels))
+    # @action(label="Add connector")
+    # def add_connector(self):
+    #     self.connectors_list.append(Connector(c_type=self.type1, tol=self.tol, df=self.df))
 
-    # @Part
-    # def connector(self):
-    #     return Connector(type= self.type1, n = self.n1, hidden = True if self.n1 == 0 else False, label = self.type1)
+    @Part
+    def connector_part(self):
+        return Connector(c_type="MIL/20-A", tol=self.tol, df=self.df)
 
     @Part
     def bracket_box(self):
@@ -152,6 +163,7 @@ class Bracket(GeomBase):
         return TextLabel(text="Bracket",
                          position=self.bracket_box.cog,
                          overlay=True)
+
 
 
 def generate_warning(warning_header, msg):
