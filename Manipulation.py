@@ -6,7 +6,7 @@ from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent
 
 
 class ManipulateAnything(Base):
-    label = 'right-click me in the viewer to manipulate selected'
+    label = 'right-click the object that is to be moved in the viewer to manipulate selected'
 
     to_manipulate = Input(in_tree=True)
 
@@ -18,8 +18,10 @@ class ManipulateAnything(Base):
         return edges
 
     @on_event(EVT_RIGHT_CLICK_OBJECT)
-    def on_click(self, evt):
-        if evt.multiple:
+    def on_click(self, evt, obj):
+        if evt.selected[0] == Bracket.bracket_box or evt.selected[0] == Bracket.bracket_cylinder or evt.selected[0] == Bracket.bracket_from_file:
+            exit
+        elif evt.multiple:
             self.start_manipulation_many(evt.selected, evt.source)
         else:
             self.start_manipulation_one(evt.selected[0], evt.source)
@@ -83,7 +85,7 @@ class ManipulateAnything(Base):
         return self._start_manipulation(obj, on_submit, on_motion, viewer)
 
     def _start_manipulation(self, obj, on_submit, on_motion, viewer):
-        gizmo = Gizmo(size=5, position=obj.position)
+        gizmo = Gizmo(size=20, position=obj.position)
         obj = Manipulation(obj=obj, viewer=viewer, on_submit=on_submit, on_motion=on_motion,
                            ghost=obj, gizmo=gizmo, )
         obj.start()
@@ -98,7 +100,7 @@ if __name__ == '__main__':
     from parapy.gui import display
 
     object2 = Bracket()
-    obj3 = ManipulateAnything(to_manipulate=object2.connectors)
+    obj3 = ManipulateAnything(to_manipulate=Connector(c_type="Mil"))
 
 
     display(obj3)

@@ -1,73 +1,39 @@
-from parapy.core import Base, Input, on_event
-from parapy.geom import Compound, Position
-from parapy.gui.events import EVT_RIGHT_CLICK_OBJECT
-from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation
+from parapy.core import Attribute
+from parapy.geom import Box
+from parapy.gui import Manipulable
+from parapy.gui.manipulation import EndEvent, MotionEvent
+from connector import Connector
+from connector_input_converter import read_connector_excel
 
+connectorlabels, df, df2 = read_connector_excel('Connector details.xlsx', 'Connector details',
+                                                'Cavity specific area')
 
-class ManipulateAnything(Base):
-    label = 'right-click me in the viewer to manipulate selected'
+class PlaneBoundCube(Connector, Manipulable):
+    label = 'right-click me in the viewer to start manipulating'
+    centered = True
 
-    to_manipulate = Input(in_tree=True)
+    @Attribute(in_tree=True)
+    def boundary(self):
+        edges = Box(400, 400, 20, centered=True, color='blue', transparency=.6).edges
+        for e in edges:
+            e.color = 'red'
+        return edges
 
-    @on_event(EVT_RIGHT_CLICK_OBJECT)
-    def on_click(self, evt):
-        if evt.multiple:
-            self.start_manipulation_many(evt.selected, evt.source)
-        else:
-            self.start_manipulation_one(evt.selected[0], evt.source)
+    def on_motion(self, evt: MotionEvent):
+        current_position = evt.current_position
+        if -200 > current_position.y or current_position.y > 200:
+            evt.Veto()
+        if -200 > current_position.x or current_position.x > 200:
+            evt.Veto()
+        if -10 > current_position.z or current_position.z > 10:
+            evt.Veto()
 
-    def start_manipulation_one(self, obj, viewer):
-        def on_submit(evt: EndEvent):
-            self._on_submit(evt, obj)
-
-        return self._start_manipulation(obj, on_submit, viewer)
-
-    def are_orientations_aligned(self, orientations):
-        ori, *oris = orientations
-        for _ori in oris:
-            if not _ori.is_almost_equal(ori):
-                return False
-        return True
-
-    def start_manipulation_many(self, objs, viewer):
-        if self.are_orientations_aligned((o.orientation for o in objs)):
-            basis_pos = objs[0].position
-        else:
-            basis_pos = Position()
-
-        obj = Compound(
-            objs,
-            position=basis_pos.replace(
-                location=objs[0].position.midpoint(
-                    objs[-1].position)))
-
-        def on_submit(evt: EndEvent):
-            for obj in objs:
-                self._on_submit(evt, obj)
-
-        return self._start_manipulation(obj, on_submit, viewer)
-
-    def _start_manipulation(self, obj, on_submit, viewer):
-        gizmo = Gizmo(size=.4, position=obj.position)
-        obj = Manipulation(obj=obj, viewer=viewer, on_submit=on_submit,
-                           ghost=obj, gizmo=gizmo)
-        obj.start()
-
-    def _on_submit(self, evt: EndEvent, obj):
-        obj.position = evt.transformation.apply(obj.position)
+    def on_submit(self, evt: EndEvent):
+        self.position = evt.current_position
 
 
 if __name__ == '__main__':
-    from parapy.geom import Cube
     from parapy.gui import display
 
-    boxes = [
-        Cube(1, centered=True, color="red"),
-        Cube(1, centered=True, color="green",
-             position=Position().translate(x=2)),
-        Cube(1, centered=True, color="blue",
-             position=Position().translate(x=4))]
-
-    obj = ManipulateAnything(to_manipulate=boxes)
-
-    display(obj)
+    obj2 = PlaneBoundCube(c_type="MIL/20-A", tol=3, df=df)
+    display(obj2)

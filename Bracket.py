@@ -31,7 +31,6 @@ class Bracket(GeomBase):
     # Widget section connector type selection
     type1 = Input("MIL/20-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
-    print(type1)
     n1 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
     type2 = Input("MIL/24-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
@@ -136,7 +135,7 @@ class Bracket(GeomBase):
 
     @Part
     def connector_part(self):
-        return Connector(c_type="MIL/20-A", tol=self.tol, df=self.df)
+        return Connector(c_type=self.type1, tol=self.tol, df=self.df)
 
     @Part
     def bracket_box(self):
@@ -185,6 +184,6 @@ def generate_warning(warning_header, msg):
 
 if __name__ == '__main__':
     from parapy.gui import display
-
     obj = Bracket()
-    display([obj])
+    obj2 = ManipulateAnything(to_manipulate=Connector(c_type=obj.type1, tol=obj.tol, df=obj.df))
+    display([obj, obj2])
