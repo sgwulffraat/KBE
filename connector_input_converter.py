@@ -25,7 +25,7 @@ def connector_input_converter(type, n, tol, df, df2):
             d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]] + 2 * tol
             size = [d]
             area = d**2
-            item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 100/df2["Area / contact"][df.index[df["Shell size"] == type[-1]][0]], 1)
+            item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 100/df2["Area / contact"][df.index[df["Shell size"] == type[-1]][0]])
         if type[4:6] == '24':
             d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]] + 2 * tol
             size = [d, d]
