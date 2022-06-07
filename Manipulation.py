@@ -1,13 +1,15 @@
 from parapy.core import Base, Input, on_event, Attribute
 from parapy.geom import Compound, Position, Box, Vector
 from parapy.gui.events import EVT_RIGHT_CLICK_OBJECT
-from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent, PlanarTranslation, Translation
+from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent, PlanarTranslation, Translation, Rotation
+import numpy as np
 
 
 class ManipulateAnything(Base):
     label = 'right-click the object that is to be moved in the viewer to manipulate selected'
 
     to_manipulate = Input(in_tree=True)
+    rotation_increment = Input(45)
 
     @Attribute(in_tree=True)
     def boundary(self):
@@ -86,7 +88,9 @@ class ManipulateAnything(Base):
         return self._start_manipulation(obj, on_submit, on_motion, viewer)
 
     def _start_manipulation(self, obj, on_submit, on_motion, viewer):
-        gizmo = Gizmo(size=20, position=obj.position, modes=[Translation(axis=Vector(1,0,0))])
+        gizmo = Gizmo(size=20, position=obj.position, modes=[Translation(axis=Vector(1, 0, 0)),
+                                                             Translation(axis=Vector(0, 1, 0)),
+                                                             Rotation(increment=self.rotation_increment*np.pi/180, normal=Vector(0, 0, 1))])
         obj = Manipulation(obj=obj,
                            viewer=viewer,
                            on_submit=on_submit,

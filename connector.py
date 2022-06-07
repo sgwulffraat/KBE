@@ -10,6 +10,7 @@ class Connector(GeomBase):
     n = Input()
     height = Input(1)
 
+
     @Attribute
     def dimensions(self):
         return connector_class_input_converter(self.c_type, self.tol, self.df)
@@ -46,7 +47,7 @@ class Connector(GeomBase):
         return Box(width=self.dim[1] if len(self.dim) == 2 else 0,
                    length=self.dim[0] if len(self.dim) == 2 else 0,
                    height=self.height,
-                   centered=False,
+                   centered=True,
                    hidden=False if self.shape == "rectangle" else True,
                    label=self.c_type,
                    quantify=self.n)

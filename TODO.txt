@@ -8,3 +8,9 @@ After the optimization (which often needs to be cut it short in view of time) is
 - input file
 - pep8 fix (shorter lines, commenting, etc)
 - UML & Activity diagram
+
+Manipulable:
+- Error messages for overlap
+- Automatic boundaries using shapely iswithin()
+- Colors & Labels
+-
