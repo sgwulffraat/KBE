@@ -31,16 +31,20 @@ class Bracket(GeomBase):
     # Widget section connector type selection
     type1 = Input("MIL/20-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
-    n1 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
+    n1 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n1_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
     type2 = Input("MIL/24-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
-    n2 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
+    n2 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n2_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
     type3 = Input("EN-2", label="Type Connector",
                   widget=Dropdown(connectorlabels))
-    n3 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
+    n3 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n3_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
     type4 = Input("EN-4", label="Type Connector",
                   widget=Dropdown(connectorlabels))
-    n4 = Input(0, label="Number of this type", validator=Positive(incl_zero=True))
+    n4 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n4_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
 
     # Specify tolerance between connectors
     tol = Input(3, label="Tolerance", validator=Positive(incl_zero=True))
@@ -87,9 +91,9 @@ class Bracket(GeomBase):
     def bracket_area(self):
         if self.bracketshape == "rectangle":
             bracket_area = self.width * self.length
-        if self.bracketshape == "circle":
+        elif self.bracketshape == "circle":
             bracket_area = np.pi * self.radius**2
-        if self.bracketshape == "file":
+        elif self.bracketshape == "file":
             bracket_area = self.bracket_from_file.children[0].children[0].children[0].area
         else:
             bracket_area = 0
@@ -97,10 +101,10 @@ class Bracket(GeomBase):
 
     @Attribute
     def optimize_items(self):
-        items1, area1 = connector_input_converter(self.type1, self.n1, self.tol, self.df, self.df2)
-        items2, area2 = connector_input_converter(self.type2, self.n2, self.tol, self.df, self.df2)
-        items3, area3 = connector_input_converter(self.type3, self.n3, self.tol, self.df, self.df2)
-        items4, area4 = connector_input_converter(self.type4, self.n4, self.tol, self.df, self.df2)
+        items1, area1 = connector_input_converter(self.type1, self.n1_problem, self.tol, self.df, self.df2)
+        items2, area2 = connector_input_converter(self.type2, self.n2_problem, self.tol, self.df, self.df2)
+        items3, area3 = connector_input_converter(self.type3, self.n3_problem, self.tol, self.df, self.df2)
+        items4, area4 = connector_input_converter(self.type4, self.n4_problem, self.tol, self.df, self.df2)
         if area1 + area2 + area3 + area4 > self.bracket_area:
             msg = "Combined connector area larger than bracket area, impossible " \
                   "to fit all connectors. Try using less or smaller connectors"
@@ -137,7 +141,7 @@ class Bracket(GeomBase):
         return Box(width=self.width,
                    length=self.length,
                    height=self.height,
-                   centered=True,
+                   centered=False,
                    hidden=False if self.bracketshape == "rectangle" else True,
                    label="Bracket")
 
