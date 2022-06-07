@@ -66,7 +66,7 @@ def execute_algorithm_with_params(params):
     """Execute the algorithm specified in the first of the passed parameters with the rest of parameters, and return the solution, value and elapsed time"""
 
     # unpack the algorithm and its parameters
-    algorithm, algorithm_name, problem, show_solution_plot, solution_plot_save_path, calculate_times, calculate_value_evolution = params
+    algorithm, algorithm_name, problem, show_solution_plot, solution_plot_save_path, calculate_times, calculate_value_evolution, generations, initial_solution = params
 
     start_time = time.time()
     value_evolution = None
@@ -74,14 +74,14 @@ def execute_algorithm_with_params(params):
     if calculate_value_evolution:
         if algorithm == evolutionary.solve_problem:
             if calculate_times:
-                solution, times_dict, value_evolution = algorithm(problem, calculate_times=calculate_times, return_population_fitness_per_generation=calculate_value_evolution)
+                solution, times_dict, value_evolution = algorithm(problem, calculate_times=calculate_times, return_population_fitness_per_generation=calculate_value_evolution, max_generation_num = generations, initial_solution = initial_solution)
             else:
-                solution, value_evolution = algorithm(problem, calculate_times=calculate_times, return_population_fitness_per_generation=calculate_value_evolution)
+                solution, value_evolution = algorithm(problem, calculate_times=calculate_times, return_population_fitness_per_generation=calculate_value_evolution, max_generation_num = generations, initial_solution = initial_solution)
         else:
             if calculate_times:
-                solution, times_dict, value_evolution = algorithm(problem, calculate_times=calculate_times, return_value_evolution=calculate_value_evolution)
+                solution, times_dict, value_evolution = algorithm(problem, calculate_times=calculate_times, return_value_evolution=calculate_value_evolution, max_generation_num = generations, initial_solution = initial_solution)
             else:
-                solution, value_evolution = algorithm(problem, calculate_times=calculate_times, return_value_evolution=calculate_value_evolution)
+                solution, value_evolution = algorithm(problem, calculate_times=calculate_times, return_value_evolution=calculate_value_evolution, max_generation_num = generations, initial_solution = initial_solution)
     elapsed_time = get_time_since(start_time)
 
     if solution and (show_solution_plot or solution_plot_save_path):
@@ -90,12 +90,12 @@ def execute_algorithm_with_params(params):
     return solution, solution.value, value_evolution, elapsed_time, times_dict
 
 
-def execute_algorithm(algorithm, algorithm_name, problem, show_solution_plot=False, solution_plot_save_path=None, calculate_times=False, calculate_fitness_stats=False, execution_num=1, process_num=1):
+def execute_algorithm(algorithm, algorithm_name, problem, show_solution_plot=False, solution_plot_save_path=None, calculate_times=False, calculate_fitness_stats=False, execution_num=1, process_num=1, gens = 30, initial_solution = 1):
 
     """Execute the passed algorithm as many times as specified (with each execution in a different CPU process if indicated), returning (at least) lists with the obtained solutions, values and elapsed times (one per execution)"""
 
     # encapsulate the algorithm and its parameters in a tuple for each execution (needed for multi-processing)
-    param_tuples = [(algorithm, algorithm_name, problem, show_solution_plot, solution_plot_save_path, calculate_times, calculate_fitness_stats) for _ in range(execution_num)]
+    param_tuples = [(algorithm, algorithm_name, problem, show_solution_plot, solution_plot_save_path, calculate_times, calculate_fitness_stats, gens, initial_solution) for _ in range(execution_num)]
 
     solutions, values, value_evolutions, times, time_divisions = list(), list(), list(), list(), list()
 
@@ -130,7 +130,7 @@ def execute_algorithm(algorithm, algorithm_name, problem, show_solution_plot=Fal
     return solutions, values, value_evolutions, times, time_divisions
 
 
-def perform_experiments(problem_type, output_dir, load_experiments, container, items, num_experiments):
+def perform_experiments(problem_type, output_dir, load_experiments, container, items, num_experiments, gens, initial_solution):
     if problem_type == "KnapsackPacking":
         print("Optimizing! Please wait for finish")
         """Perform a set of experiments for the problem with the passed index, and producing output in the specified directory (when applicable)"""
@@ -168,8 +168,7 @@ def perform_experiments(problem_type, output_dir, load_experiments, container, i
 
                     # solve the problem with different algorithms, executing each one multiple times to gain statistical significance
                     for (algorithm_name, algorithm) in [("Evolutionary", evolutionary.solve_problem)]:
-
-                        solutions, values, value_evolutions, times, time_divisions = execute_algorithm(algorithm=algorithm, algorithm_name=algorithm_name, problem=problem, execution_num=execution_num, process_num=process_num, calculate_times=calculate_internal_times, calculate_fitness_stats=calculate_value_evolution)
+                        solutions, values, value_evolutions, times, time_divisions = execute_algorithm(algorithm=algorithm, algorithm_name=algorithm_name, problem=problem, execution_num=execution_num, process_num=process_num, calculate_times=calculate_internal_times, calculate_fitness_stats=calculate_value_evolution,gens = gens, initial_solution = initial_solution)
                         experiment_dict[problem_name]["algorithms"][algorithm_name] = {"solutions": solutions, "values": values, "value_evolutions": value_evolutions, "times": times, "time_divisions": time_divisions}
 
                 # show the total time spent doing experiments (note that significant overhead can be introduced beyond calculation time if plots are shown or saved to files; for strict time measurements, plotting should be avoided altogether)
@@ -243,7 +242,6 @@ def perform_experiments(problem_type, output_dir, load_experiments, container, i
                                     weight = int(weight)
                                 placed_connectors[item_index] = {"item_index": item_index, "x_coor": x, "y_coor": y,
                                                              "centroid": centroid, "value": value, "weight": weight}
-                        print(placed_connectors)
                         break
 
         return solution.placed_items, placed_connectors
