@@ -6,7 +6,7 @@ import numpy as np
 
 
 class ManipulateAnything(Base):
-    label = 'right-click the object that is to be moved in the viewer to manipulate selected'
+    label = Input('right-click the object that is to be moved in the viewer to manipulate selected')
 
     to_manipulate = Input(in_tree=True)
     rotation_increment = Input(45)
