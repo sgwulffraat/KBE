@@ -162,7 +162,7 @@ def solve_problem(problem, greedy_score_function=get_weighted_sum_of_item_value_
                     start_time = time.time()
 
                 # try to add the item in a random position and with a random rotation; if it is valid, remove the item from the pending list
-                if solution.add_item(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.uniform(0, 360)):
+                if solution.add_item(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), 0):#random.uniform(0, 360)):
 
                     # the item to place first is assumed to have been placed, if there was any
                     item_index_to_place_first = -1

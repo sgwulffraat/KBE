@@ -53,7 +53,7 @@ class Initial_Solution(GeomBase):
         if self.manual_initial_solution == True:
             for j in range(len(self.connector_part.square_connector)):
                 shape = self.items[j].shape
-                x,y = self.connector_part1.square_connector[j].cog[0],self.connector_part.square_connector[j].cog[1]
+                x,y = self.connector_part.square_connector[j].cog[0],self.connector_part.square_connector[j].cog[1]
                 pop.placed_items[j] = PlacedShape(shape=shape,position=(x,y),rotation=0)
                 pop.value = pop.value + self.items[j].value
                 pop.weight = pop.weight + self.items[j].weight

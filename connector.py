@@ -7,8 +7,9 @@ class Connector(GeomBase):
     c_type = Input()
     tol = Input()
     df = Input()
-    n = Input()
+    n = Input(1)
     height = Input(2)
+    cog = Input([[0,0,0]])
 
     @Attribute
     def dimensions(self):
@@ -27,10 +28,11 @@ class Connector(GeomBase):
         return Box(width=self.dim[0] if len(self.dim) == 2 else 0,
                    length=self.dim[0] if len(self.dim) == 2 else 0,
                    height=self.height,
-                   centered=False,
+                   centered=True,
                    hidden=False if self.shape == "square" else True,
                    label=self.c_type,
                    quantify=self.n,
+                   position=translate(self.position,'x',self.cog[child.index][0],'y',self.cog[child.index][1],'z',1),
                    color='red')
 
     @Part
