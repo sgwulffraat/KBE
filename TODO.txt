@@ -14,6 +14,7 @@ Manipulable:
 - Optimized solution manipulable
 
 Algorithme
+- Initial solution based on heuristics
 - Simpler optimization at begin; Design of Experiments algorithme
 - Rotation increment
 
