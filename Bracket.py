@@ -5,7 +5,7 @@ from parapy.core.validate import *
 from parapy.exchange import *
 from connector import Connector
 from connector_input_converter import connector_input_converter, read_connector_excel
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point
 from source.circle import Circle
 from parapy.geom import TextLabel
 from Manipulation import ManipulateAnything
@@ -116,9 +116,9 @@ class Bracket(GeomBase):
                 max_value = population[i].value
                 max_index = i
 
-        print(population[max_index].placed_items.keys())
-        print(population[max_index].placed_items)
-        print(len(population[max_index].placed_items.keys()))
+        # print(population[max_index].placed_items.keys())
+        # print(population[max_index].placed_items)
+        # print(len(population[max_index].placed_items.keys()))
         cog = [[]]*self.n1
         for i in range(self.n1):
             if i in population[max_index].placed_items.keys():
@@ -188,6 +188,20 @@ class Bracket(GeomBase):
         return container
 
     @Attribute
+    def pts_container(self):
+        if self.bracketshape == "rectangle":
+            pts_container = [(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)]
+        if self.bracketshape == "circle":
+            pts_container = self.radius
+        if self.bracketshape == 'file':
+            points = []
+            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
+                points.append((self.bracket_from_file.children[0].children[0].children[0].edges[i].start.x,
+                               self.bracket_from_file.children[0].children[0].children[0].edges[i].start.y))
+            pts_container = points
+        return pts_container
+
+    @Attribute
     def optimize_container(self):
         if self.bracketshape == "rectangle":
             container = Polygon([(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)])
@@ -204,7 +218,6 @@ class Bracket(GeomBase):
     @Part
     def connector_part(self):
         return Connector(c_type=self.type1,
-                         tol=self.tol,
                          df=self.df,
                          n=self.n1,
                          cog=self.initial_placement)
@@ -262,5 +275,7 @@ def generate_warning(warning_header, msg):
 
 if __name__ == '__main__':
     from parapy.gui import display
-    obj = ManipulateAnything(to_manipulate=Bracket())
+    bracket_obj = Bracket()
+    obj = ManipulateAnything(to_manipulate=bracket_obj,
+                             pts_container=bracket_obj.pts_container)
     display([obj])

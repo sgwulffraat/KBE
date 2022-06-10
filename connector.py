@@ -5,7 +5,6 @@ from connector_input_converter import connector_class_input_converter
 
 class Connector(GeomBase):
     c_type = Input()
-    tol = Input()
     df = Input()
     n = Input(1)
     height = Input(2)
@@ -13,7 +12,7 @@ class Connector(GeomBase):
 
     @Attribute
     def dimensions(self):
-        return connector_class_input_converter(self.c_type, self.tol, self.df)
+        return connector_class_input_converter(self.c_type, self.df)
 
     @Attribute
     def shape(self):
@@ -22,6 +21,7 @@ class Connector(GeomBase):
     @Attribute
     def dim(self):
         return self.dimensions[0]
+
 
     @Part
     def square_connector(self):
@@ -39,7 +39,7 @@ class Connector(GeomBase):
     def circular_connector(self):
         return Cylinder(radius=self.dim[0] if len(self.dim) == 1 else 0,
                         height=self.height,
-                        centered=True,
+                        centered=False,
                         hidden=False if self.shape == "circle" else True,
                         label=self.c_type,
                         quantify=self.n,

@@ -52,25 +52,25 @@ def connector_input_converter(type, n, tol, df, df2):
     total_area = n*area
     return items, total_area
 
-def connector_class_input_converter(type, tol, df):
+def connector_class_input_converter(type, df):
     if type[0:3] == "MIL":
         if type[4:6] == '20':
-            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]] + 2 * tol
+            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]]
             size = [d, d]
             shape = 'square'
         if type[4:6] == '24':
-            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]] + 2 * tol
+            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]]
             size = [d]
             shape = 'circle'
     elif type[0:2] == "EN":
         shape = 'rectangle'
         if type[-1] == '2':
-            l = 55.6 + 2 * tol
-            w = 15.2 + 2 * tol
+            l = 55.6
+            w = 15.2
             size = [l, w]
         if type[-1] == '4':
-            l = 86.1 + 2 * tol
-            w = 15.2 + 2 * tol
+            l = 86.1
+            w = 15.2
             size = [l, w]
     else:
         size = []

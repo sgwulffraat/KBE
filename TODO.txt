@@ -6,6 +6,7 @@ General
 - input file
 - pep8 fix (shorter lines, commenting, etc)
 - UML & Activity diagram
+- correct height placing of connectors (z = 0.5 * bracket_height)
 
 Manipulable:
 - Error messages for overlap
