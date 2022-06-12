@@ -5,16 +5,17 @@ from parapy.core.validate import *
 from parapy.exchange import *
 from connector import Connector
 from connector_input_converter import connector_input_converter, read_connector_excel
-from shapely.geometry import Polygon, Point
+from shapely.geometry import Polygon
 from source.circle import Circle
 from parapy.geom import TextLabel
 from Manipulation import ManipulateAnything
 import numpy as np
 import sys
-sys.path.append('source')
 from source.evolutionary import generate_population
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from working_testing import create_knapsack_packing_problem
+sys.path.append('source')
+
 
 class Bracket(GeomBase):
     # Shape input: rectangle, circle or file
@@ -33,7 +34,7 @@ class Bracket(GeomBase):
     # Widget section connector type selection
     type1 = Input("MIL/20-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
-    n1 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n1 = Input(1, label="Placed number of this type", validator=Positive(incl_zero=True))
     n1_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
     type2 = Input("MIL/24-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
@@ -66,8 +67,8 @@ class Bracket(GeomBase):
     # How many different initial placements should be generated and how
     population_size = Input(1)
     item_specialization_iter_proportion = Input(0.5)
-    container = Input(Container(np.inf,Polygon([(0,0),(1,0),(1,1),(0,1)])))
-    items = Input(Item(Polygon([(0,0),(1,0),(1,1),(0,1)]),1,0))
+    container = Input(Container(np.inf, Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])))
+    items = Input(Item(Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]), 1, 0))
 
     # Generate initial placement of connectors using greedy algorithm
 
@@ -102,12 +103,15 @@ class Bracket(GeomBase):
 
     @Attribute
     def initial_placement_problem(self):
-        problems, problem_names, manual_solutions = create_knapsack_packing_problem(self.initial_placement_container, self.initial_placement_items[0])
+        problems, problem_names, manual_solutions = create_knapsack_packing_problem(self.initial_placement_container,
+                                                                                    self.initial_placement_items[0])
         return problems, problem_names, manual_solutions
 
     @Attribute
     def initial_placement(self):
-        for i, (problem, problem_name, solution) in enumerate(zip(self.initial_placement_problem[0], self.initial_placement_problem[1], self.initial_placement_problem[2])):
+        for i, (problem, problem_name, solution) in enumerate(zip(self.initial_placement_problem[0],
+                                                                  self.initial_placement_problem[1],
+                                                                  self.initial_placement_problem[2])):
             population = generate_population(problem, self.population_size, self.item_specialization_iter_proportion)
 
         for i in range(self.population_size):
@@ -122,11 +126,11 @@ class Bracket(GeomBase):
         cog = [[]]*self.n1
         for i in range(self.n1):
             if i in population[max_index].placed_items.keys():
-                print(population[max_index].placed_items[i])
-                x,y = population[max_index].placed_items[i].position
-                cog[i] = [x,y,0]
+                # print(population[max_index].placed_items[i])
+                x, y = population[max_index].placed_items[i].position
+                cog[i] = [x, y, 0]
             else:
-                cog[i] = [0,0,0]
+                cog[i] = [0, 0, 0]
         return cog
 
     @Attribute

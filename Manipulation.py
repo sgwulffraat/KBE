@@ -1,5 +1,6 @@
 from parapy.core import Base, Input, on_event, Attribute
 from parapy.geom import Compound, Position, Box, Vector
+from parapy.geom import Polygon as para_Polygon
 from parapy.gui.events import EVT_RIGHT_CLICK_OBJECT
 from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent, Translation, Rotation
 from shapely.geometry import Polygon, Point
@@ -11,23 +12,21 @@ class ManipulateAnything(Base):
     to_manipulate = Input(in_tree=True)
     rotation_increment = Input(45)
     pts_container = Input()
-    selected_connector = Input('no connector selected yet')
+    slctd_conn = Input('no connector selected yet')
 
-
-
-    @Attribute(in_tree=True)
-    def boundary(self):
-        edges = Box(400, 400, 200, centered=True, color='blue', transparency=.5).edges
-        for e in edges:
-            e.color = 'red'
-        return edges
+    # @Attribute(in_tree=True)
+    # def boundary(self):
+    #     edges = Box(400, 400, 200, centered=True, color='blue', transparency=.5).edges
+    #     for e in edges:
+    #         e.color = 'red'
+    #     return edges
 
     @Attribute
     def pol_container(self):
         if len(self.to_manipulate.pts_container) > 0:
             pol_container = Polygon(self.pts_container)
         else:
-            pol_container = Point(0,0).buffer(self.pts_container)
+            pol_container = Point(0, 0).buffer(self.pts_container)
         return pol_container
 
     @on_event(EVT_RIGHT_CLICK_OBJECT)
@@ -40,24 +39,51 @@ class ManipulateAnything(Base):
             self.start_manipulation_many(evt.selected, evt.source)
         else:
             self.start_manipulation_one(evt.selected[0], evt.source)
-            self.selected_connector = evt.selected[0]
+            self.slctd_conn = evt.selected[0]
 
+    # Veto connector placement outside of bracket domain
     def _on_motion(self, evt: MotionEvent):
         current_position = evt.current_position
-        if len(self.selected_connector.faces) == 3:
-            pol_connector = Point(current_position.x, current_position.y).buffer(self.selected_connector.radius)
-            if self.pol_container.contains(pol_connector) == False:
+        print(evt.current_position.orientation.y, evt.current_position.orientation.x)
+        if len(self.slctd_conn.faces) == 3:
+            pol_connector = Point(current_position.x, current_position.y).buffer(self.slctd_conn.radius)
+            if self.pol_container.contains(pol_connector) is False:
                 evt.Veto()
-        elif len(self.selected_connector.faces) == 6:
-            pol_connector = Polygon([(current_position.x + (self.selected_connector.width/2 + self.to_manipulate.tol),
-                                      current_position.y + (self.selected_connector.length/2 + self.to_manipulate.tol)),
-                                     (current_position.x + (self.selected_connector.width/2 + self.to_manipulate.tol),
-                                      current_position.y - (self.selected_connector.length/2 + self.to_manipulate.tol)),
-                                     (current_position.x - (self.selected_connector.width/2 + self.to_manipulate.tol),
-                                      current_position.y - (self.selected_connector.length/2 + self.to_manipulate.tol)),
-                                     (current_position.x - (self.selected_connector.width/2 + self.to_manipulate.tol),
-                                      current_position.y + (self.selected_connector.length/2 + self.to_manipulate.tol))])
-            if self.pol_container.contains(pol_connector) == False:
+        elif len(self.slctd_conn.faces) == 6:
+            pol_connector = Polygon([(current_position.x + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.x[0])
+                                                            - (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.x[1])),
+                                      current_position.y + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                            * -(current_position.orientation.y[0])
+                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.y[1]))),
+                                     (current_position.x + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.x[0])
+                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.x[1])),
+                                      current_position.y - ((self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.y[1])
+                                                            + (self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.y[0]))),
+                                     (current_position.x - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.x[0])
+                                                            - (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.x[1])),
+                                      current_position.y - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                            * -(current_position.orientation.y[0])
+                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.y[1]))),
+                                     (current_position.x - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.x[0])
+                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.x[1])),
+                                      current_position.y + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.y[0])
+                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                            * (current_position.orientation.y[1])))
+                                     ])
+            if self.pol_container.contains(pol_connector) is False:
                 evt.Veto()
 
     def start_manipulation_one(self, obj, viewer):
@@ -65,8 +91,6 @@ class ManipulateAnything(Base):
             self._on_submit(evt, obj)
 
         return self._start_manipulation(obj, on_submit, self._on_motion, viewer)
-
-
 
     def are_orientations_aligned(self, orientations):
         ori, *oris = orientations
@@ -110,9 +134,6 @@ class ManipulateAnything(Base):
         obj.position = evt.transformation.apply(obj.position)
         self.position = evt.current_position
 
-
 if __name__ == '__main__':
     from parapy.geom import Cube
     from parapy.gui import display
-
-
