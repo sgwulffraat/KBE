@@ -1,4 +1,3 @@
-import numpy as np
 import xlsxwriter
 from parapy.geom import *
 from parapy.core import *
@@ -8,21 +7,11 @@ from working_testing import perform_experiments
 from parapy.exchange import *
 import sys
 sys.path.append('source')
-from source.circle import Circle
 from source.evolutionary import generate_population
 from working_testing import create_knapsack_packing_problem
-from source.shape_functions import get_shape_exterior_points
 from source.problem_solution import PlacedShape, Solution, Container, Item
-import matplotlib.pyplot as plt
-import shapely.ops
 from Manipulation import ManipulateAnything
-from parapy.core.validate import *
 from connector import Connector
-
-from source.circle import Circle
-from parapy.geom import TextLabel
-
-
 import numpy as np
 import sys
 sys.path.append('source')
@@ -76,6 +65,7 @@ class Optimization(GeomBase):
     generations = Input(1)
     connector_height = Input(2)
     manual_initial_solution = Input(True,widget=Dropdown([True,False],labels=['True','False']))
+    rotation_step = Input(30)
 
     @Attribute
     def optimized(self):
@@ -91,16 +81,26 @@ class Optimization(GeomBase):
         connector4 = workbook.add_worksheet("Connector 4")
 
         if self.optimization == "KnapsackPacking":
-            placed_item_index, placed_items = perform_experiments(self.optimization,self.solution_directory,load_experiments=False,
+            placed_item_index, placed_items = perform_experiments(self.optimization,
+                                                                  self.solution_directory,
+                                                                  load_experiments=False,
                                                                   container=self.initial_solution.bracket.to_manipulate.optimize_container,
                                                                   items=self.initial_solution.bracket.to_manipulate.optimize_items[0],
                                                                   num_experiments = self.number_of_different_solutions,
                                                                   gens = self.generations,
-                                                                  initial_solution = self.initial_solution.initial_solution)
+                                                                  initial_solution = self.initial_solution.initial_solution,
+                                                                  rotation_step = self.rotation_step)
             placed_items_faces = []
             number_n1 = number_n2 = number_n3 = number_n4 = area_connectors1 = area_connectors2 = area_connectors3 = area_connectors4 = 0
-
+            cog = []
+            rotation = []
+            print("placed_item_index:", placed_item_index)
             for i in placed_item_index:
+                print(placed_items[i]["centroid"])
+                rotation.append(placed_items[i]["rotation"])
+                print("rotation:", rotation)
+                cog.append([placed_items[i]["centroid"].x,placed_items[i]["centroid"].y])
+                print(cog)
                 placed_item_coor = []
                 for j in range(len(placed_items[i]["x_coor"])):
                     placed_coor = Point(placed_items[i]["x_coor"][j],placed_items[i]["y_coor"][j],0)
@@ -175,7 +175,7 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
             warnings.warn(msg)
             generate_warning("Optimization complete:", msg)
             workbook.close()
-            return placed_items_faces, type1, type2, type3, type4
+            return number_n1, number_n2, number_n3, number_n4, cog, rotation, placed_items_faces, type1, type2, type3, type4
 
 
     @Part
@@ -193,10 +193,14 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
 
     @Part
     def optimized_connectors(self):
-        return ExtrudedSolid(quantify = len(self.optimized[0]),
-                             face_in=self.optimized[0][child.index],
-                             distance = self.connector_height,
-                             direction=(0, 0, 1),color='green')
+        return Connector(c_type=self.bracket.to_manipulate.type1,
+                         df=self.bracket.to_manipulate.df,
+                         n=self.optimized[0],
+                         cog=self.optimized[4],
+                         rotation=self.optimized[5],
+                         deg=True,
+                         color='green')
+
 
     @Part
     def step_writer(self):

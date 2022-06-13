@@ -107,6 +107,8 @@ CONVERGE_GENERATION_NUM = 12
 # maximum proportion of iterations of the generation of an initial solution in which to specialize in trying to place a specific item
 INITIAL_SOLUTION_GENERATION_FIRST_ITEM_SPECIALIZATION_ITER_PROPORTION = 0.5
 
+rotation_step = 0
+
 
 def get_fitness(solution):
 
@@ -359,7 +361,7 @@ def select_parents(population, offspring_size, pool_size, can_use_crossover):
     return parents
 
 
-def get_crossover(parent0, parent1, max_attempt_num, shape_min_length_proportion, shape_max_length_proportion, shape_min_area_proportion, polygon_max_vertex_num, max_permutation_num, min_fitness_for_non_best):
+def get_crossover(parent0, parent1, max_attempt_num, shape_min_length_proportion, shape_max_length_proportion, shape_min_area_proportion, polygon_max_vertex_num, max_permutation_num, min_fitness_for_non_best, rotation_step):
 
     """Generate and return two offspring from the passed parents"""
 
@@ -472,13 +474,13 @@ def get_crossover(parent0, parent1, max_attempt_num, shape_min_length_proportion
         for item_index in parent0_separated_item_indices[1] + parent0_separated_item_indices[2]:
             offspring0.remove_item(item_index)
         for item_index in parent1_separated_item_indices[1]:
-            offspring0.add_item(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.uniform(0, 360))
+            offspring0.add_item(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.randrange(0, 360, rotation_step))
 
         # for the second offspring, keep only the items placed in the second region in the first parent, then try to place the items of the first region of the second parent (duplication is internally prevented)
         for item_index in parent0_separated_item_indices[0] + parent0_separated_item_indices[2]:
             offspring1.remove_item(item_index)
         for item_index in parent1_separated_item_indices[0]:
-            offspring1.add_item(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.uniform(0, 360))
+            offspring1.add_item(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.randrange(0, 360, rotation_step))
 
         # find all the pairs (item index, parent index); one for each intersected item in a parent
         item_parent_pairs = list()
@@ -532,7 +534,7 @@ def get_crossover(parent0, parent1, max_attempt_num, shape_min_length_proportion
     return offspring0, offspring1
 
 
-def mutate_with_addition(solution, max_attempt_num):
+def mutate_with_addition(solution, max_attempt_num, rotation_step):
 
     """Try to mutate the passed solution in-place by adding an item"""
 
@@ -555,7 +557,7 @@ def mutate_with_addition(solution, max_attempt_num):
         for _ in range(max_attempt_num):
 
             # if the action succeeds, there is nothing more to try
-            if solution.add_item(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.uniform(0, 360)):
+            if solution.add_item(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.randrange(0, 360, rotation_step)):
                 return True
 
     return False
@@ -577,7 +579,7 @@ def mutate_with_removal(solution):
     return False
 
 
-def mutate_with_placement_modification(solution, max_attempt_num, small_position_change_proportion, small_rotation_change_proportion, move_until_intersection_point_num, move_until_intersection_min_dist_proportion, rotate_until_intersection_angle_num, item_index=-1, action_index=-1):
+def mutate_with_placement_modification(solution, max_attempt_num, small_position_change_proportion, small_rotation_change_proportion, move_until_intersection_point_num, move_until_intersection_min_dist_proportion, rotate_until_intersection_angle_num, item_index=-1, action_index=-1, rotation_step = rotation_step):
 
     """Try to mutate the passed solution in-place by modifying an existing placement"""
 
@@ -649,7 +651,7 @@ def mutate_with_placement_modification(solution, max_attempt_num, small_position
                 has_modified = solution.swap_placements(item_index, swap_item_index, swap_position=True, swap_rotation=False)
                 swap_ignore_indices.append(swap_item_index)
             elif action_index == rotation_change_index:
-                has_modified = solution.rotate_item_to(item_index, random.uniform(0, 360))
+                has_modified = solution.rotate_item_to(item_index, random.randrange(0, 360, rotation_step))
             elif action_index == small_rotation_change_index:
                 has_modified = solution.rotate_item(item_index, random.uniform(-max_small_rotation, max_small_rotation))
             elif action_index == rotate_until_intersect_index:
@@ -664,7 +666,7 @@ def mutate_with_placement_modification(solution, max_attempt_num, small_position
                 has_modified = solution.swap_placements(item_index, swap_item_index, swap_position=False, swap_rotation=True)
                 swap_ignore_indices.append(swap_item_index)
             elif action_index == position_rotation_change_index:
-                has_modified = solution.move_and_rotate_item_to(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.uniform(0, 360))
+                has_modified = solution.move_and_rotate_item_to(item_index, (random.uniform(min_x, max_x), random.uniform(min_y, max_y)), random.randrange(0, 360, rotation_step))
             elif action_index == small_position_rotation_change_index:
                 has_modified = solution.move_and_rotate_item(item_index, (random.uniform(-max_small_x_change, max_small_x_change), random.uniform(-max_small_y_change, max_small_y_change)), random.uniform(-max_small_rotation, max_small_rotation))
             elif action_index == position_rotation_swap_index:
@@ -685,7 +687,7 @@ def mutate_with_placement_modification(solution, max_attempt_num, small_position
     return False
 
 
-def get_mutation(solution, min_iter_num, mutation_add_weight, mutation_remove_weight, mutation_modify_weight, mutation_add_max_attempt_num, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion,  mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, mutation_intermediate_selection_prob):
+def get_mutation(solution, min_iter_num, mutation_add_weight, mutation_remove_weight, mutation_modify_weight, mutation_add_max_attempt_num, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion,  mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, mutation_intermediate_selection_prob, rotation_step):
 
     """Generate and return a mutated copy of the passed solution"""
 
@@ -714,7 +716,7 @@ def get_mutation(solution, min_iter_num, mutation_add_weight, mutation_remove_we
 
         # mutate with the selected action type
         if action_index == add_index:
-            has_mutated = mutate_with_addition(mutated_solution, mutation_add_max_attempt_num)
+            has_mutated = mutate_with_addition(mutated_solution, mutation_add_max_attempt_num, rotation_step)
             # if the addition is successful, it can compensate a previous removal; also count as compensated any failed additions after the base iteration limit, to avoid an eventual infinite loop
             if has_mutated or iter_count >= min_iter_num:
                 removal_num_to_compensate = max(removal_num_to_compensate - 1, 0)
@@ -724,7 +726,7 @@ def get_mutation(solution, min_iter_num, mutation_add_weight, mutation_remove_we
             if has_mutated:
                 removal_num_to_compensate += 1
         else:
-            has_mutated = mutate_with_placement_modification(mutated_solution, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion,  mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num)
+            has_mutated = mutate_with_placement_modification(mutated_solution, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion,  mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, rotation_step= rotation_step )
 
         # if a mutation was applied and there is any possibility to select intermediate solutions as final ones and the current intermediate solution is better than any previous one, keep a copy of it
         if has_mutated and mutation_intermediate_selection_prob > 0 and get_fitness(mutated_solution) > get_fitness(best_solution):
@@ -740,7 +742,7 @@ def get_mutation(solution, min_iter_num, mutation_add_weight, mutation_remove_we
         return mutated_solution
 
 
-def generate_offspring(parents, mutation_min_iter_num, mutation_add_weight, mutation_remove_weight, mutation_modify_weight, mutation_add_max_attempt_num, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion, mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, mutation_intermediate_selection_prob, crossover_ignore_mutation_probability, crossover_max_attempt_num, crossover_shape_min_length_proportion, crossover_shape_max_length_proportion, crossover_shape_min_area_proportion, crossover_polygon_max_vertex_num, crossover_max_permutation_num, crossover_min_fitness_for_non_best, calculate_times=False):
+def generate_offspring(parents, mutation_min_iter_num, mutation_add_weight, mutation_remove_weight, mutation_modify_weight, mutation_add_max_attempt_num, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion, mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, mutation_intermediate_selection_prob, crossover_ignore_mutation_probability, crossover_max_attempt_num, crossover_shape_min_length_proportion, crossover_shape_max_length_proportion, crossover_shape_min_area_proportion, crossover_polygon_max_vertex_num, crossover_max_permutation_num, crossover_min_fitness_for_non_best, calculate_times=False, rotation_step = rotation_step):
 
     """Generate and return offspring from the passed parents"""
 
@@ -765,7 +767,7 @@ def generate_offspring(parents, mutation_min_iter_num, mutation_add_weight, muta
 
         # use crossover to generate (at least) two individuals per pair, that will be mutated later
         for (parent0, parent1) in parents:
-            individuals_to_mutate.extend(get_crossover(parent0, parent1, crossover_max_attempt_num, crossover_shape_min_length_proportion, crossover_shape_max_length_proportion, crossover_shape_min_area_proportion, crossover_polygon_max_vertex_num, crossover_max_permutation_num, crossover_min_fitness_for_non_best))
+            individuals_to_mutate.extend(get_crossover(parent0, parent1, crossover_max_attempt_num, crossover_shape_min_length_proportion, crossover_shape_max_length_proportion, crossover_shape_min_area_proportion, crossover_polygon_max_vertex_num, crossover_max_permutation_num, crossover_min_fitness_for_non_best, rotation_step))
 
         if calculate_times:
             crossover_time += get_time_since(start_time)
@@ -784,7 +786,7 @@ def generate_offspring(parents, mutation_min_iter_num, mutation_add_weight, muta
 
         else:
             # create a mutated copy of the individual
-            mutated_individual = get_mutation(individual, mutation_min_iter_num, mutation_add_weight, mutation_remove_weight, mutation_modify_weight, mutation_add_max_attempt_num, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion,  mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, mutation_intermediate_selection_prob)
+            mutated_individual = get_mutation(individual, mutation_min_iter_num, mutation_add_weight, mutation_remove_weight, mutation_modify_weight, mutation_add_max_attempt_num, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion,  mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, mutation_intermediate_selection_prob, rotation_step= rotation_step)
 
             # if crossover was used and the mutated individual is less fit (or same but loses the tie-break), keep the pre-mutation individual with a certain probability
             if can_use_crossover and get_fittest_solution([individual, mutated_individual]) == individual:
@@ -859,7 +861,7 @@ def get_fitness_stats(population):
     return {"max": max_fitness, "min": min_fitness, "avg": fitness_sum / len(population), "mode": max(fitness_counts, key=fitness_counts.get)}
 
 
-def solve_problem(problem, population_size=POPULATION_SIZE, initial_generation_item_specialization_iter_proportion=INITIAL_SOLUTION_GENERATION_FIRST_ITEM_SPECIALIZATION_ITER_PROPORTION, offspring_size=OFFSPRING_SIZE, elite_size=ELITE_SIZE, parent_selection_pool_size=PARENT_SELECTION_POOL_SIZE, population_update_pool_size=POPULATION_UPDATE_POOL_SIZE, max_generation_num=MAX_GENERATION_NUM, converge_generation_num=CONVERGE_GENERATION_NUM, mutation_min_iter_num=MUTATION_MIN_ITER_NUM, mutation_add_weight=MUTATION_ADD_WEIGHT, mutation_remove_weight=MUTATION_REMOVE_WEIGHT, mutation_modify_weight=MUTATION_MODIFY_WEIGHT, mutation_add_max_attempt_num=MUTATION_ADD_MAX_ATTEMPT_NUM, mutation_modify_max_attempt_num=MUTATION_MODIFY_MAX_ATTEMPT_NUM, small_position_change_proportion=MUTATION_MODIFY_SMALL_POSITION_CHANGE_PROPORTION, small_rotation_change_proportion=MUTATION_MODIFY_SMALL_ROTATION_CHANGE_PROPORTION, mutation_modify_move_until_intersection_point_num=MUTATION_MODIFY_MOVE_UNTIL_INTERSECTION_POINT_NUM, mutation_modify_move_until_intersection_min_dist_proportion=MUTATION_MODIFY_MOVE_UNTIL_INTERSECTION_MIN_DIST_PROPORTION, mutation_modify_rotate_until_intersection_angle_num=MUTATION_MODIFY_ROTATE_UNTIL_INTERSECTION_ANGLE_NUM, mutation_intermediate_selection_prob=MUTATION_INTERMEDIATE_SELECTION_PROB, can_use_crossover=CAN_USE_CROSSOVER, crossover_ignore_mutation_probability=CROSSOVER_IGNORE_MUTATION_PROBABILITY, crossover_max_attempt_num=CROSSOVER_MAX_ATTEMPT_NUM, crossover_shape_min_length_proportion=CROSSOVER_SHAPE_MIN_LENGTH_PROPORTION, crossover_shape_max_length_proportion=CROSSOVER_SHAPE_MAX_LENGTH_PROPORTION, crossover_shape_min_area_proportion=CROSSOVER_SHAPE_MIN_AREA_PROPORTION, crossover_polygon_max_vertex_num=CROSSOVER_POLYGON_MAX_VERTEX_NUM, crossover_max_permutation_num=CROSSOVER_MAX_PERMUTATION_NUM, crossover_min_fitness_for_non_best_proportion=CROSSOVER_MIN_FITNESS_FOR_NON_BEST_PROPORTION, calculate_times=False, return_population_fitness_per_generation=False, initial_solution=1):
+def solve_problem(problem, population_size=POPULATION_SIZE, initial_generation_item_specialization_iter_proportion=INITIAL_SOLUTION_GENERATION_FIRST_ITEM_SPECIALIZATION_ITER_PROPORTION, offspring_size=OFFSPRING_SIZE, elite_size=ELITE_SIZE, parent_selection_pool_size=PARENT_SELECTION_POOL_SIZE, population_update_pool_size=POPULATION_UPDATE_POOL_SIZE, max_generation_num=MAX_GENERATION_NUM, converge_generation_num=CONVERGE_GENERATION_NUM, mutation_min_iter_num=MUTATION_MIN_ITER_NUM, mutation_add_weight=MUTATION_ADD_WEIGHT, mutation_remove_weight=MUTATION_REMOVE_WEIGHT, mutation_modify_weight=MUTATION_MODIFY_WEIGHT, mutation_add_max_attempt_num=MUTATION_ADD_MAX_ATTEMPT_NUM, mutation_modify_max_attempt_num=MUTATION_MODIFY_MAX_ATTEMPT_NUM, small_position_change_proportion=MUTATION_MODIFY_SMALL_POSITION_CHANGE_PROPORTION, small_rotation_change_proportion=MUTATION_MODIFY_SMALL_ROTATION_CHANGE_PROPORTION, mutation_modify_move_until_intersection_point_num=MUTATION_MODIFY_MOVE_UNTIL_INTERSECTION_POINT_NUM, mutation_modify_move_until_intersection_min_dist_proportion=MUTATION_MODIFY_MOVE_UNTIL_INTERSECTION_MIN_DIST_PROPORTION, mutation_modify_rotate_until_intersection_angle_num=MUTATION_MODIFY_ROTATE_UNTIL_INTERSECTION_ANGLE_NUM, mutation_intermediate_selection_prob=MUTATION_INTERMEDIATE_SELECTION_PROB, can_use_crossover=CAN_USE_CROSSOVER, crossover_ignore_mutation_probability=CROSSOVER_IGNORE_MUTATION_PROBABILITY, crossover_max_attempt_num=CROSSOVER_MAX_ATTEMPT_NUM, crossover_shape_min_length_proportion=CROSSOVER_SHAPE_MIN_LENGTH_PROPORTION, crossover_shape_max_length_proportion=CROSSOVER_SHAPE_MAX_LENGTH_PROPORTION, crossover_shape_min_area_proportion=CROSSOVER_SHAPE_MIN_AREA_PROPORTION, crossover_polygon_max_vertex_num=CROSSOVER_POLYGON_MAX_VERTEX_NUM, crossover_max_permutation_num=CROSSOVER_MAX_PERMUTATION_NUM, crossover_min_fitness_for_non_best_proportion=CROSSOVER_MIN_FITNESS_FOR_NON_BEST_PROPORTION, calculate_times=False, return_population_fitness_per_generation=False, initial_solution=1, rotation_step = rotation_step):
 
     """Find and return a solution to the passed problem, using an evolutionary algorithm"""
 
@@ -927,7 +929,7 @@ def solve_problem(problem, population_size=POPULATION_SIZE, initial_generation_i
             min_fitness_for_crossover_non_best_time += get_time_since(start_time)
 
         # generate offspring
-        offspring_result = generate_offspring(parents, mutation_min_iter_num, mutation_add_weight, mutation_remove_weight, mutation_modify_weight, mutation_add_max_attempt_num, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion, mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, mutation_intermediate_selection_prob, crossover_ignore_mutation_probability, crossover_max_attempt_num, crossover_shape_min_length_proportion, crossover_shape_max_length_proportion, crossover_shape_min_area_proportion, crossover_polygon_max_vertex_num, crossover_max_permutation_num, crossover_min_fitness_for_non_best, calculate_times)
+        offspring_result = generate_offspring(parents, mutation_min_iter_num, mutation_add_weight, mutation_remove_weight, mutation_modify_weight, mutation_add_max_attempt_num, mutation_modify_max_attempt_num, small_position_change_proportion, small_rotation_change_proportion, mutation_modify_move_until_intersection_point_num, mutation_modify_move_until_intersection_min_dist_proportion, mutation_modify_rotate_until_intersection_angle_num, mutation_intermediate_selection_prob, crossover_ignore_mutation_probability, crossover_max_attempt_num, crossover_shape_min_length_proportion, crossover_shape_max_length_proportion, crossover_shape_min_area_proportion, crossover_polygon_max_vertex_num, crossover_max_permutation_num, crossover_min_fitness_for_non_best, calculate_times, rotation_step=rotation_step)
         if calculate_times:
             offspring, new_crossover_time, new_mutation_time = offspring_result
             crossover_time += new_crossover_time

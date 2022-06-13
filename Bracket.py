@@ -224,7 +224,8 @@ class Bracket(GeomBase):
         return Connector(c_type=self.type1,
                          df=self.df,
                          n=self.n1,
-                         cog=self.initial_placement)
+                         cog=self.initial_placement,
+                         rotation=[0]*self.n1)
 
     @Part
     def bracket_box(self):

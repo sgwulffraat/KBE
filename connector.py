@@ -9,6 +9,9 @@ class Connector(GeomBase):
     n = Input(1)
     height = Input(2)
     cog = Input([[0, 0, 0]])
+    rotation = Input([0])
+    color = Input('red')
+    deg = Input(False)
 
     @Attribute
     def dimensions(self):
@@ -31,11 +34,14 @@ class Connector(GeomBase):
                    hidden=False if self.shape == "square" else True,
                    label=self.c_type,
                    quantify=self.n,
-                   position=translate(self.position,
-                                      'x', self.cog[child.index][0],
-                                      'y', self.cog[child.index][1],
-                                      'z', 1),
-                   color='red')
+                   position=rotate(
+                                   translate(self.position,
+                                             'x', self.cog[child.index][0],
+                                             'y', self.cog[child.index][1],
+                                             'z', 1),
+                                   'z', self.rotation[child.index],
+                                   deg=self.deg),
+                   color=self.color)
 
     @Part
     def circular_connector(self):
