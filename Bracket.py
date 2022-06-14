@@ -14,6 +14,7 @@ import sys
 from source.evolutionary import generate_population
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from working_testing import create_knapsack_packing_problem
+from warning_pop_up import generate_warning
 sys.path.append('source')
 
 
@@ -55,7 +56,7 @@ class Bracket(GeomBase):
     # Height or thickness of the to be designed bracket
     height = Input(1, validator=Positive(incl_zero=True), label="Thickness of bracket")
 
-    # Allow pop up
+    # Allow pop-up
     popup_gui = Input(True, label="Allow pop-up")
 
     # Connectors empty list
@@ -261,21 +262,7 @@ class Bracket(GeomBase):
                          overlay=True)
 
 
-def generate_warning(warning_header, msg):
 
-    from tkinter import Tk, messagebox
-
-    # initialization
-    window = Tk()
-    window.withdraw()
-
-    # generates message box
-    messagebox.showwarning(warning_header, msg)
-
-    # kills the gui
-    window.deiconify()
-    window.destroy()
-    window.quit()
 
 
 if __name__ == '__main__':
