@@ -1,7 +1,7 @@
 import xlsxwriter
 from parapy.geom import *
 from parapy.core import *
-from parapy.core.widgets import Dropdown, FilePicker
+from parapy.core.widgets import Dropdown
 from Bracket import Bracket, generate_warning
 from working_testing import perform_experiments
 from parapy.exchange import *
@@ -14,6 +14,7 @@ from Manipulation import ManipulateAnything
 from connector import Connector
 import numpy as np
 import sys
+import parapy
 sys.path.append('source')
 
 class Initial_Solution(GeomBase):
@@ -189,7 +190,8 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
     @Part
     def bracket(self):
         return ManipulateAnything(to_manipulate=Bracket(n1=0,n1_problem=9),
-                                  label='bracket: right-click to manipulate')
+                                  label='bracket: right-click to manipulate',
+                                  pts_container=self.bracket.to_manipulate.pts_container)
 
     @Part
     def optimized_connectors(self):
@@ -205,6 +207,7 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
     @Part
     def step_writer(self):
         return STEPWriter(trees = [self.bracket,self.connectors])
+
 
 if __name__ == "__main__":
     from parapy.gui import display
