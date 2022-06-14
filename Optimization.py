@@ -16,13 +16,14 @@ import numpy as np
 import sys
 sys.path.append('source')
 
+
 class Initial_Solution(GeomBase):
     from shapely.geometry import Polygon
     population_size = Input(100)
     item_specialization_iter_proportion = Input(0.5)
     manual_initial_solution = Input(False)
-    container = Input(Container(np.inf,Polygon([(0,0),(1,0),(1,1),(0,1)])))
-    items = Input(Item(Polygon([(0,0),(1,0),(1,1),(0,1)]),1,0))
+    container = Input(Container(np.inf, Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])))
+    items = Input(Item(Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]), 1, 0))
     n1_problem = Input(1)
     connector_part = Input(Connector())
 
@@ -58,13 +59,13 @@ class Optimization(GeomBase):
     the user is working on finalizing input. When set to "KnapsackPacking", the input provided by the
     user is the complete set of connectors that should be placed on a given bracket. """
     optimization_options = ["Inputs", "KnapsackPacking"]
-    optimization = Input("Inputs",label="Optimization Setting",widget=Dropdown(optimization_options,labels=["Working on Inputs","Optimize!"]))
+    optimization = Input("Inputs", label="Optimization Setting", widget=Dropdown(optimization_options, labels=["Working on Inputs","Optimize!"]))
 
     solution_directory = ""
     number_of_different_solutions = Input(1)
     generations = Input(1)
     connector_height = Input(2)
-    manual_initial_solution = Input(True,widget=Dropdown([True,False],labels=['True','False']))
+    manual_initial_solution = Input(True, widget=Dropdown([True, False], labels=['True', 'False']))
     rotation_step = Input(30)
 
     @Attribute
@@ -188,7 +189,7 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
 
     @Part
     def bracket(self):
-        return ManipulateAnything(to_manipulate=Bracket(n1=0,n1_problem=9),
+        return ManipulateAnything(to_manipulate=Bracket(n1=2,n1_problem=9), pts_container=Bracket().pts_container,
                                   label='bracket: right-click to manipulate')
 
     @Part
