@@ -10,7 +10,7 @@ General
 
 Manipulable:
 - Error messages for overlap
-- Automatic boundaries using shapely iswithin()
+- Automatic boundaries using shapely iswithin() for circular remove tolerance
 - Colors & Labels
 - Optimized solution manipulable
 
