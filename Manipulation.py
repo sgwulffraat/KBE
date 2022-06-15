@@ -1,5 +1,5 @@
 from parapy.core import Base, Input, on_event, Attribute
-from parapy.geom import Compound, Position, Box, Vector
+from parapy.geom import Compound, Position, Vector, RectangularSurface
 from parapy.core.validate import warnings
 from parapy.geom import Polygon as para_Polygon
 from parapy.geom import Point as para_Point
@@ -29,6 +29,25 @@ class ManipulateAnything(Base):
             bounds = "No stationary connectors present"
         return bounds
 
+    # @Attribute(in_tree=True)
+    # def boundary(self):
+    #     edges = []
+    #     for i in range(0, len(self.to_manipulate.connector_part.cog)):
+    #         if self.to_manipulate.connector_part.shape == 'square':
+    #             rect_surface = RectangularSurface(width=self.to_manipulate.connector_part.square_connector[i].width
+    #                                                     + self.to_manipulate.tol,
+    #                                               length=self.to_manipulate.connector_part.square_connector[i].length
+    #                                                     + self.to_manipulate.tol,
+    #                                               position=self.to_manipulate.connector_part.square_connector[i].position,
+    #                                               color='red',
+    #                                               transparency=.2).edges
+    #             edges.append(rect_surface)
+    #         # if self.to_manipulate.connector_part.shape == 'circle':
+    #         #     ids.append(self.to_manipulate.connector_part.circular_connector[i].id)
+    #         # if self.to_manipulate.connector_part.shape == 'rectangle':
+    #         #     ids.append(self.to_manipulate.connector_part.rectangle_connector[i].id)
+    #     return edges
+
     @Attribute
     def pol_container(self):
         if len(self.to_manipulate.pts_container) > 0:
@@ -46,9 +65,9 @@ class ManipulateAnything(Base):
                     stationary_connector = self.to_manipulate.connector_part.square_connector[i]
                     bound_pts = self.pol_pts(stationary_connector)
                     bound_para_points = []
-                    for i in range(0,4):
-                        bound_para_points.append(para_Point(bound_pts[i][0],
-                                                            bound_pts[i][1],
+                    for j in range(0, 4):
+                        bound_para_points.append(para_Point(bound_pts[j][0],
+                                                            bound_pts[j][1],
                                                             self.to_manipulate.height))
                     bound_list.append(bound_para_points)
             # if self.to_manipulate.connector_part.shape == 'circle':
@@ -102,9 +121,9 @@ class ManipulateAnything(Base):
                                                + (self.slctd_conn.length/2 + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[1])),
                 stationary_connector.cog[1] + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * (stationary_connector.orientation.y[0])
-                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (stationary_connector.orientation.y[1])))
+                                               * (stationary_connector.orientation.y[0])
+                                               + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                               * (stationary_connector.orientation.y[1])))
                ]
         return pts
 
@@ -115,7 +134,8 @@ class ManipulateAnything(Base):
                 or evt.selected[0] == self.to_manipulate.bracket_from_file:
             return print("Bracket is not manipulable")
         elif evt.multiple:
-            return print("Simultaneously moving multiple connectors is not yet allowed. Please select one connector to manipulate.")
+            return print("Simultaneously moving multiple connectors is not yet allowed. "
+                         "Please select one connector to manipulate.")
         else:
             self.start_manipulation_one(evt.selected[0], evt.source)
             self.slctd_conn = evt.selected[0]
@@ -134,37 +154,37 @@ class ManipulateAnything(Base):
             pol_connector = Point(position.x, position.y).buffer(self.slctd_conn.radius + self.to_manipulate.tol)
         elif len(self.slctd_conn.faces) == 6:
             pol_connector = Polygon([(position.x + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.x[0])
-                                                            - (self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.x[1])),
+                                                    * (position.orientation.x[0])
+                                                    - (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.x[1])),
                                       position.y + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * -(position.orientation.y[0])
-                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.y[1]))),
+                                                    * -(position.orientation.y[0])
+                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.y[1]))),
                                      (position.x + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.x[0])
-                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.x[1])),
+                                                    * (position.orientation.x[0])
+                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.x[1])),
                                       position.y - ((self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.y[1])
-                                                            + (self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.y[0]))),
+                                                    * (position.orientation.y[1])
+                                                    + (self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.y[0]))),
                                      (position.x - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.x[0])
-                                                            - (self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.x[1])),
+                                                    * (position.orientation.x[0])
+                                                    - (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.x[1])),
                                       position.y - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * -(position.orientation.y[0])
-                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.y[1]))),
+                                                    * -(position.orientation.y[0])
+                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.y[1]))),
                                      (position.x - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.x[0])
-                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.x[1])),
+                                                    * (position.orientation.x[0])
+                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.x[1])),
                                       position.y + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.y[0])
-                                                            + (self.slctd_conn.length/2 + self.to_manipulate.tol)
-                                                            * (position.orientation.y[1])))
+                                                    * (position.orientation.y[0])
+                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.y[1])))
                                      ])
         else:
             print("No valid connector found")
@@ -214,7 +234,6 @@ class ManipulateAnything(Base):
                            gizmo=gizmo, )
         obj.start()
 
-
     def _on_submit(self, evt: EndEvent, obj):
         current_position = evt.current_position
         pol_connector = self._pol_connector(current_position)
@@ -234,7 +253,3 @@ class ManipulateAnything(Base):
         else:
             obj.position = evt.transformation.apply(obj.position)
             self.position = evt.current_position
-
-if __name__ == '__main__':
-    from parapy.geom import Cube
-    from parapy.gui import display
