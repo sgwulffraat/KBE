@@ -30,10 +30,10 @@ PARENT_SELECTION_POOL_SIZE = 3
 POPULATION_UPDATE_POOL_SIZE = 3
 
 # maximum number of iterations for the generation of an initial solution
-INITIAL_SOLUTION_GENERATION_MAX_ITER_NUM = 300
+INITIAL_SOLUTION_GENERATION_MAX_ITER_NUM = 1000
 
 # maximum number of iterations to assume that a generated initial solution has converged
-INITIAL_SOLUTION_GENERATION_CONVERGE_ITER_NUM = 50
+INITIAL_SOLUTION_GENERATION_CONVERGE_ITER_NUM = 500
 
 # minimum number of iterations of mutation
 MUTATION_MIN_ITER_NUM = 5
@@ -57,7 +57,7 @@ MUTATION_MODIFY_MAX_ATTEMPT_NUM = 3
 MUTATION_MODIFY_SMALL_POSITION_CHANGE_PROPORTION = 0.2
 
 # maximum proportion of 360 degrees that can be applied as a rotation offset in a mutation step of placement modification of the type small rotation change
-MUTATION_MODIFY_SMALL_ROTATION_CHANGE_PROPORTION = 0.2
+MUTATION_MODIFY_SMALL_ROTATION_CHANGE_PROPORTION = 0
 
 # maximum number of positions to check in the placement modification mutation that tries to move an item in a direction until it intersects
 MUTATION_MODIFY_MOVE_UNTIL_INTERSECTION_POINT_NUM = 15

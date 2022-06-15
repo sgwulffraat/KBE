@@ -5,8 +5,8 @@ from parapy.core.widgets import Dropdown
 from Bracket import Bracket, generate_warning
 from working_testing import perform_experiments
 from parapy.exchange import *
-import sys
-sys.path.append('source')
+from parapy.geom.generic.utilities import vector_angle
+import math
 from source.evolutionary import generate_population
 from working_testing import create_knapsack_packing_problem
 from source.problem_solution import PlacedShape, Solution, Container, Item
@@ -17,6 +17,7 @@ import sys
 sys.path.append('source')
 
 
+
 class Initial_Solution(GeomBase):
     from shapely.geometry import Polygon
     population_size = Input(100)
@@ -25,7 +26,11 @@ class Initial_Solution(GeomBase):
     container = Input(Container(np.inf, Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])))
     items = Input(Item(Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]), 1, 0))
     n1_problem = Input(1)
-    connector_part = Input(Connector())
+    connector_part1 = Input(Connector())
+    connector_part2 = Input(Connector())
+    connector_part3 = Input(Connector())
+    connector_part4 = Input(Connector())
+    connector_part = [connector_part1, connector_part2, connector_part3, connector_part4]
 
 
     @Attribute
@@ -39,14 +44,82 @@ class Initial_Solution(GeomBase):
             population = generate_population(problem, self.population_size, self.item_specialization_iter_proportion)
 
         pop = Solution(problem)
+        print(self.connector_part)
 
-        if self.manual_initial_solution == True:
-            for j in range(len(self.connector_part.square_connector)):
-                shape = self.items[j].shape
-                x,y = self.connector_part.square_connector[j].cog[0],self.connector_part.square_connector[j].cog[1]
-                pop.placed_items[j] = PlacedShape(shape=shape,position=(x,y),rotation=0)
-                pop.value = pop.value + self.items[j].value
-                pop.weight = pop.weight + self.items[j].weight
+        if self.manual_initial_solution:
+            for i in [self.connector_part]:
+                for j in ["square_connector", "circular_connector", "rectangular connector"]:
+                    if i == self.connector_part1:
+                        if len(i.j) is not 0:
+                            for k in range(len(i.j)):
+                                shape = self.items[k].shape
+                                x, y = i.j[k].cog[0], i.j[k].cog[1]
+                                rotation = vector_angle(i.j[k].orientation[0], Vector(1, 0, 0), False) / math.pi*180
+                                print(rotation)
+                                pop.placed_items[k] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
+                                pop.value = pop.value + self.items[k].value
+                                print("MIL20 value:", self.items[k].value)
+                                pop.weight = pop.weight + self.items[k].weight
+                                print("MIL20 weight:", self.items[k].weight)
+                        else:
+                            print("connector_part1 is not defined")
+                    elif i == self.connector_part2:
+                        if len(i.j) is not 0:
+                            for k in range(len(i.j)):
+                                shape = self.items[self.n1_problem + k].shape
+                                x, y = i.j[k].cog[0], i.j[k].cog[1]
+                                rotation = vector_angle(i.j[k].orientation[0], Vector(1, 0, 0), False) / math.pi*180
+                                print(rotation)
+                                pop.placed_items[self.n1_problem + k] = PlacedShape(shape=shape, position=(x, y),
+                                                                                    rotation=rotation)
+                                pop.value = pop.value + self.items[self.n1_problem + k].value
+                                pop.weight = pop.weight + self.items[self.n1_problem + k].weight
+                        else:
+                            print("connector_part2 is not defined")
+                    elif i == self.connector_part3:
+                        if len(i.j) is not 0:
+                            for k in range(len(i.j)):
+                                shape = self.items[self.n1_problem + self.n2_problem + k].shape
+                                x, y = i.j[k].cog[0], i.j[k].cog[1]
+                                rotation = vector_angle(i.j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
+                                print(rotation)
+                                pop.placed_items[self.n1_problem + self.n2_problem + k] = PlacedShape(shape=shape,
+                                                                                                      position=(x, y),
+                                                                                                      rotation=rotation)
+                                pop.value = pop.value + self.items[self.n1_problem + self.n2_problem + k].value
+                                print("EN2 value:", self.items[self.n1_problem + self.n2_problem + k].value)
+                                pop.weight = pop.weight + self.items[self.n1_problem + self.n2_problem + k].weight
+                                print("EN2 weight:", self.items[self.n1_problem + self.n2_problem + k].weight)
+                        else:
+                            print("connector_part3 is not defined")
+                    elif i == self.connector_part4:
+                        if len(i.j) is not 0:
+                            for k in range(len(i.j)):
+                                shape = self.items[self.n1_problem + self.n2_problem + self.n3_problem + k].shape
+                                x, y = i.j[k].cog[0], i.j[k].cog[1]
+                                rotation = vector_angle(i.j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
+                                print(rotation)
+                                pop.placed_items[self.n1_problem + self.n2_problem + self.n3_problem + k] = \
+                                    PlacedShape(shape=shape, position=(x, y), rotation=rotation)
+                                pop.value = pop.value + self.items[self.n1_problem + self.n2_problem + self.n3_problem
+                                                                   + k].value
+                                print("EN4 value:", self.items[self.n1_problem + self.n2_problem + self.n3_problem + k].value)
+                                pop.weight = pop.weight + self.items[self.n1_problem + self.n2_problem + self.n3_problem
+                                                                     + k].weight
+                                print("EN4 weight:", self.items[self.n1_problem + self.n2_problem + self.n3_problem + k].value)
+                        else:
+                            print("connector_part4 is not defined")
+
+                        #shape = self.items[j].shape
+            #for j in range(len(self.connector_part.square_connector)):
+            #    shape = self.items[j].shape
+            #    x,y = self.connector_part.square_connector[j].cog[0],self.connector_part.square_connector[j].cog[1]
+            #    rotation = vector_angle(self.connector_part.square_connector[j].orientation[0], Vector(1, 0, 0), False)\
+            #        / math.pi*180
+            #    print(rotation)
+            #    pop.placed_items[j] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
+            #    pop.value = pop.value + self.items[j].value
+            #    pop.weight = pop.weight + self.items[j].weight
 
             for i in range(self.population_size):
                 population[i] = pop
@@ -97,11 +170,11 @@ class Optimization(GeomBase):
             rotation = []
             print("placed_item_index:", placed_item_index)
             for i in placed_item_index:
-                print(placed_items[i]["centroid"])
-                rotation.append(placed_items[i]["rotation"])
-                print("rotation:", rotation)
-                cog.append([placed_items[i]["centroid"].x,placed_items[i]["centroid"].y])
-                print(cog)
+                #print(placed_items[i]["centroid"])
+                #rotation.append(placed_items[i]["rotation"])
+                #print("rotation:", rotation)
+                #cog.append([placed_items[i]["centroid"].x,placed_items[i]["centroid"].y])
+                #print(cog)
                 placed_item_coor = []
                 for j in range(len(placed_items[i]["x_coor"])):
                     placed_coor = Point(placed_items[i]["x_coor"][j],placed_items[i]["y_coor"][j],0)
@@ -118,6 +191,8 @@ class Optimization(GeomBase):
                     worksheet.write(1,2,area_connectors1)
                     connector1.write(row,0,str(placed_item_coor))
                     row = row + 1
+                    rotation.append(placed_items[i]["rotation"])
+                    cog.append([placed_items[i]["centroid"].x, placed_items[i]["centroid"].y])
 
                 elif i in range(self.bracket.to_manipulate.n1_problem,
                                 self.bracket.to_manipulate.n1_problem+self.bracket.to_manipulate.n2_problem):
@@ -130,6 +205,8 @@ class Optimization(GeomBase):
                     worksheet.write(2, 2, area_connectors2)
                     connector2.write(row, 0, str(placed_item_coor))
                     row = row + 1
+                    rotation.append(placed_items[i]["rotation"])
+                    cog.append([placed_items[i]["centroid"].x, placed_items[i]["centroid"].y])
 
                 elif i in range(self.bracket.to_manipulate.n1_problem+self.bracket.to_manipulate.n2_problem,
                                 self.bracket.to_manipulate.n1_problem + self.bracket.to_manipulate.n2_problem+self.bracket.to_manipulate.n3_problem):
@@ -142,6 +219,8 @@ class Optimization(GeomBase):
                     worksheet.write(3, 2, area_connectors3)
                     connector3.write(row, 0, str(placed_item_coor))
                     row = row + 1
+                    rotation.append(placed_items[i]["rotation"])
+                    cog.append([placed_items[i]["centroid"].x, placed_items[i]["centroid"].y])
 
                 elif i in range(self.bracket.to_manipulate.n1_problem+self.bracket.to_manipulate.n2_problem+self.bracket.to_manipulate.n3_problem,
                                 self.bracket.to_manipulate.n1_problem+self.bracket.to_manipulate.n2_problem+self.bracket.to_manipulate.n3_problem+self.bracket.to_manipulate.n4_problem):
@@ -154,6 +233,8 @@ class Optimization(GeomBase):
                     worksheet.write(4, 2, area_connectors4)
                     connector4.write(row, 0, str(placed_item_coor))
                     row = row + 1
+                    rotation.append(placed_items[i]["rotation"])
+                    cog.append([placed_items[i]["centroid"].x, placed_items[i]["centroid"].y])
 
             area_connectors = area_connectors1 + area_connectors2 + area_connectors3 + area_connectors4
             type1 = f"{number_n1} of {self.bracket.to_manipulate.type1} were placed"
@@ -185,21 +266,63 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
                                 container=self.bracket.to_manipulate.optimize_container,
                                 items=self.bracket.to_manipulate.optimize_items[0],
                                 n1_problem=self.bracket.to_manipulate.n1_problem,
-                                connector_part=self.bracket.to_manipulate.connector_part)
+                                connector_part1=self.bracket.to_manipulate.connector_part1,
+                                connector_part2=self.bracket.to_manipulate.connector_part2,
+                                connector_part3=self.bracket.to_manipulate.connector_part3,
+                                connector_part4=self.bracket.to_manipulate.connector_part4)
 
     @Part
     def bracket(self):
-        return ManipulateAnything(to_manipulate=Bracket(n1=2, n1_problem=9),
+        return ManipulateAnything(to_manipulate=Bracket(n1=2, n1_problem=3, n3=1, n3_problem=1, n4=1, n4_problem=1),
                                   label='bracket: right-click to manipulate',
                                   pts_container=self.bracket.to_manipulate.pts_container)
 
     @Part
-    def optimized_connectors(self):
+    def optimized_connectors1(self):
         return Connector(c_type=self.bracket.to_manipulate.type1,
                          df=self.bracket.to_manipulate.df,
                          n=self.optimized[0],
-                         cog=self.optimized[4],
-                         rotation=self.optimized[5],
+                         cog=self.optimized[4][0:
+                                               self.optimized[0]],
+                         rotation=self.optimized[5][0:
+                                                    self.optimized[0]],
+                         deg=True,
+                         color='green')
+
+    @Part
+    def optimized_connectors2(self):
+        return Connector(c_type=self.bracket.to_manipulate.type2,
+                         df=self.bracket.to_manipulate.df,
+                         n=self.optimized[1],
+                         cog=self.optimized[4][self.optimized[0]:
+                                               self.optimized[0]+self.optimized[1]],
+                         rotation=self.optimized[5][self.optimized[0]:
+                                                    self.optimized[0]+self.optimized[1]],
+                         deg=True,
+                         color='green')
+
+    @Part
+    def optimized_connectors3(self):
+        return Connector(c_type=self.bracket.to_manipulate.type3,
+                         df=self.bracket.to_manipulate.df,
+                         n=self.optimized[2],
+                         cog=self.optimized[4][self.optimized[0]+self.optimized[1]:
+                                               self.optimized[0]+self.optimized[1]+self.optimized[2]],
+                         rotation=self.optimized[5][self.optimized[0]+self.optimized[1]:
+                                                    self.optimized[0]+self.optimized[1]+self.optimized[2]],
+                         deg=True,
+                         color='green')
+
+    @Part
+    def optimized_connectors4(self):
+        return Connector(c_type=self.bracket.to_manipulate.type4,
+                         df=self.bracket.to_manipulate.df,
+                         n=self.optimized[3],
+                         cog=self.optimized[4][self.optimized[0]+self.optimized[1]+self.optimized[2]:
+                                               self.optimized[0]+self.optimized[1]+self.optimized[2]+self.optimized[3]],
+                         rotation=self.optimized[5][self.optimized[0]+self.optimized[1]+self.optimized[2]:
+                                                    self.optimized[0]+self.optimized[1]+self.optimized[2]+
+                                                    self.optimized[3]],
                          deg=True,
                          color='green')
 

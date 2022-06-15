@@ -13,6 +13,7 @@ class ManipulateAnything(Base):
     to_manipulate = Input(in_tree=True)
     rotation_increment = Input(45)
     pts_container = Input()
+
     slctd_conn = Input('no connector selected yet')
 
     # @Attribute(in_tree=True)

@@ -120,17 +120,19 @@ class Bracket(GeomBase):
                 max_value = population[i].value
                 max_index = i
 
-        # print(population[max_index].placed_items.keys())
-        # print(population[max_index].placed_items)
-        # print(len(population[max_index].placed_items.keys()))
-        cog = [[]]*self.n1
-        for i in range(self.n1):
+        cog = [[]]*(self.n1+self.n2+self.n3+self.n4)
+        for i in range(self.n1+self.n2+self.n3+self.n4):
+            print(range(self.n1+self.n2+self.n3+self.n4))
             if i in population[max_index].placed_items.keys():
-                # print(population[max_index].placed_items[i])
+                print(population[max_index].placed_items.keys())
                 x, y = population[max_index].placed_items[i].position
+                print(x, y)
                 cog[i] = [x, y, 0]
             else:
                 cog[i] = [0, 0, 0]
+
+        print(cog)
+
         return cog
 
     @Attribute
@@ -220,12 +222,36 @@ class Bracket(GeomBase):
         return container
 
     @Part
-    def connector_part(self):
+    def connector_part1(self):
         return Connector(c_type=self.type1,
                          df=self.df,
                          n=self.n1,
-                         cog=self.initial_placement,
+                         cog=self.initial_placement[0:self.n1],
                          rotation=[0]*self.n1)
+
+    @Part
+    def connector_part2(self):
+        return Connector(c_type=self.type2,
+                         df=self.df,
+                         n=self.n2,
+                         cog=self.initial_placement[self.n1:self.n1+self.n2],
+                         rotation=[0] * self.n2)
+
+    @Part
+    def connector_part3(self):
+        return Connector(c_type=self.type3,
+                         df=self.df,
+                         n=self.n3,
+                         cog=self.initial_placement[self.n1+self.n2:self.n1+self.n2+self.n3],
+                         rotation=[0] * self.n3)
+
+    @Part
+    def connector_part4(self):
+        return Connector(c_type=self.type4,
+                         df=self.df,
+                         n=self.n4,
+                         cog=self.initial_placement[self.n1+self.n2+self.n3:self.n1+self.n2+self.n3+self.n4],
+                         rotation=[0] * self.n4)
 
     @Part
     def bracket_box(self):

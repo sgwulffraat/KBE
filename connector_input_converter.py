@@ -23,12 +23,12 @@ def connector_input_converter(type, n, tol, df, df2):
     if type[0:3] == "MIL":
         if type[4:6] == '20':
             d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]] + 2 * tol
-            size = [d]
+            size = [d, d]
             area = d**2
             item = Item(Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)]), 1, 100/df2["Area / contact"][df.index[df["Shell size"] == type[-1]][0]])
         if type[4:6] == '24':
-            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]] + 2 * tol
-            size = [d, d]
+            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]] + 2 * tol
+            size = [d]
             area = np.pi * (d / 2) ** 2
             item = Item(Circle((0, 0), d/2), 1, 100/df2["Area / contact"][df.index[df["Shell size"] == type[-1]][1]])
     elif type[0:2] == "EN":
@@ -59,7 +59,7 @@ def connector_class_input_converter(type, df):
             size = [d, d]
             shape = 'square'
         if type[4:6] == '24':
-            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]]
+            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]]
             size = [d]
             shape = 'circle'
     elif type[0:2] == "EN":

@@ -51,15 +51,29 @@ class Connector(GeomBase):
                         hidden=False if self.shape == "circle" else True,
                         label=self.c_type,
                         quantify=self.n,
-                        color='red')
+                        position=rotate(
+                            translate(self.position,
+                                      'x', self.cog[child.index][0],
+                                      'y', self.cog[child.index][1],
+                                      'z', 1),
+                            'z', self.rotation[child.index],
+                            deg=self.deg),
+                        color=self.color)
 
     @Part
     def rectangle_connector(self):
-        return Box(width=self.dim[1] if len(self.dim) == 2 else 0,
-                   length=self.dim[0] if len(self.dim) == 2 else 0,
+        return Box(width=self.dim[0] if len(self.dim) == 2 else 0,
+                   length=self.dim[1] if len(self.dim) == 2 else 0,
                    height=self.height,
                    centered=True,
                    hidden=False if self.shape == "rectangle" else True,
                    label=self.c_type,
                    quantify=self.n,
-                   color='red')
+                   position=rotate(
+                       translate(self.position,
+                                 'x', self.cog[child.index][0],
+                                 'y', self.cog[child.index][1],
+                                 'z', 1),
+                       'z', self.rotation[child.index],
+                       deg=self.deg),
+                   color=self.color)
