@@ -1,5 +1,5 @@
 from parapy.core import Base, Input, on_event, Attribute
-from parapy.geom import Compound, Position, Vector, RectangularSurface
+from parapy.geom import Compound, Position, Vector, Circle
 from parapy.core.validate import warnings
 from parapy.geom import Polygon as para_Polygon
 from parapy.geom import Point as para_Point
@@ -9,7 +9,7 @@ from shapely.geometry import Polygon, Point
 import numpy as np
 from warning_pop_up import generate_warning
 from parapy.gui.display import refresh_top_window
-
+from time import sleep
 
 
 class ManipulateAnything(Base):
@@ -22,14 +22,7 @@ class ManipulateAnything(Base):
     # Allow pop up
     popup_gui = Input(True, label="Allow pop-up")
 
-    @Attribute(in_tree=True)
-    def tol_boundaries(self):
-        bounds = []
-        if len(self.bound_list) != 0:
-            for i in self.bound_list:
-                bounds.append(para_Polygon(i, color='red', transparency=.5))
-        return bounds
-
+    # Shapely polygon of container
     @Attribute
     def pol_container(self):
         if len(self.to_manipulate.pts_container) > 0:
@@ -38,9 +31,10 @@ class ManipulateAnything(Base):
             pol_container = Point(0, 0).buffer(self.pts_container)
         return pol_container
 
-    @Attribute
-    def bound_list(self):
-        bound_list = []
+    # Parapy GUI boundary shape
+    @Attribute(in_tree=True)
+    def tol_bounds(self):
+        bounds = []
         for i in range(0, len(self.to_manipulate.connector_part1.cog)):
             if type(self.slctd_conn) is not str:
                 if self.to_manipulate.connector_part1.shape == 'square':
@@ -52,29 +46,49 @@ class ManipulateAnything(Base):
                             bound_para_points.append(para_Point(bound_pts[j][0],
                                                                 bound_pts[j][1],
                                                                 self.to_manipulate.height))
-                        bound_list.append(bound_para_points)
-            # if self.to_manipulate.connector_part1.shape == 'circle':
-            #     ids.append(self.to_manipulate.connector_part1.circular_connector[i].id)
-            # if self.to_manipulate.connector_part1.shape == 'rectangle':
-            #     ids.append(self.to_manipulate.connector_part1.rectangle_connector[i].id)
-        return bound_list
+                        bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
+                if self.to_manipulate.connector_part1.shape == 'circle':
+                    if self.to_manipulate.connector_part1.circular_connector[i].id != self.slctd_conn.id:
+                        stationary_connector = self.to_manipulate.connector_part1.circular_connector[i]
+                        bounds.append(Circle(radius=stationary_connector.radius+self.to_manipulate.tol,
+                                             position=stationary_connector.position,
+                                             color='red', transparency=.5))
+                if self.to_manipulate.connector_part1.shape == 'rectangle':
+                    if self.to_manipulate.connector_part1.rectangle_connector[i].id != self.slctd_conn.id:
+                        stationary_connector = self.to_manipulate.connector_part1.rectangle_connector[i]
+                        bound_pts = self.pol_pts(stationary_connector)
+                        bound_para_points = []
+                        for j in range(0, 4):
+                            bound_para_points.append(para_Point(bound_pts[j][0],
+                                                                bound_pts[j][1],
+                                                                self.to_manipulate.height))
+                        bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
+        return bounds
 
+    # List of stationary shapely polygons
     @Attribute
     def pol_list(self):
         pol_list = []
         for i in range(0, len(self.to_manipulate.connector_part1.cog)):
             if type(self.slctd_conn) is not str:
-                if self.to_manipulate.connector_part1.shape == 'square':
-                    if self.to_manipulate.connector_part1.square_connector[i].id != self.slctd_conn.id:
+                if self.to_manipulate.connector_part1.square_connector[i].id != self.slctd_conn.id:
+                    if self.to_manipulate.connector_part1.shape == 'square':
                         stationary_connector = self.to_manipulate.connector_part1.square_connector[i]
                         polygon = Polygon(self.pol_pts(stationary_connector))
                         pol_list.append(polygon)
-                # if self.to_manipulate.connector_part1.shape == 'circle':
-                #     ids.append(self.to_manipulate.connector_part1.circular_connector[i].id)
-                # if self.to_manipulate.connector_part1.shape == 'rectangle':
-                #     ids.append(self.to_manipulate.connector_part1.rectangle_connector[i].id)
+                if self.to_manipulate.connector_part1.circular_connector[i].id != self.slctd_conn.id:
+                    if self.to_manipulate.connector_part1.shape == 'circle':
+                        stationary_connector = self.to_manipulate.connector_part1.circular_connector[i]
+                        polygon = Point((stationary_connector.cog[0]), (stationary_connector.cog[1])).buffer(stationary_connector.radius)
+                        pol_list.append(polygon)
+                if self.to_manipulate.connector_part1.rectangle_connector[i].id != self.slctd_conn.id:
+                    if self.to_manipulate.connector_part1.shape == 'rectangle':
+                        stationary_connector = self.to_manipulate.connector_part1.rectangle_connector[i]
+                        polygon = Polygon(self.pol_pts(stationary_connector))
+                        pol_list.append(polygon)
         return pol_list
 
+    # Function to get edge points of any rectangular connector
     def pol_pts(self, stationary_connector):
         pts = [(stationary_connector.cog[0] + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[0])
@@ -124,13 +138,11 @@ class ManipulateAnything(Base):
             self.start_manipulation_one(evt.selected[0], evt.source)
             self.slctd_conn = evt.selected[0]
 
-    # Veto connector placement outside of bracket domain
+    # Veto connector placement outside of bracket domain and change color depending on overlap conditions
     def _on_motion(self, evt: MotionEvent):
         current_position = evt.current_position
         pol_connector = self._pol_connector_with_tol(current_position)
         pol_connector_no_tol = self._pol_connector_no_tol(current_position)
-        self.slctd_conn.color = 'orange'
-        refresh_top_window()
         if self.pol_container.contains(pol_connector) is False:
             evt.Veto()
         if len(self.pol_list) != 0:
@@ -139,7 +151,13 @@ class ManipulateAnything(Base):
                 cond.append(pol_connector_no_tol.overlaps(self.pol_list[i]))
             if any(cond):
                 self.slctd_conn.color = 'red'
+            else:
+                self.slctd_conn.color = 'orange'
+            refresh_top_window()
+        else:
+            self.slctd_conn.color = 'orange'
 
+    # Function to get shapely polygon of selected connector with tolerances applied (used for container boundary check)
     def _pol_connector_with_tol(self, position):
         if len(self.slctd_conn.faces) == 3:
             pol_connector = Point(position.x, position.y).buffer(self.slctd_conn.radius + self.to_manipulate.tol)
@@ -181,6 +199,7 @@ class ManipulateAnything(Base):
             print("No valid connector found")
         return pol_connector
 
+    # Function to get shapely polygon without tolerances applied (used for overlap with stationary connectors)
     def _pol_connector_no_tol(self, position):
         if len(self.slctd_conn.faces) == 3:
             pol_connector = Point(position.x, position.y).buffer(self.slctd_conn.radius)
@@ -280,6 +299,7 @@ class ManipulateAnything(Base):
                 if self.popup_gui:
                     generate_warning("Warning: Position not valid", msg)
             else:
+                self.slctd_conn.color = 'green'
                 obj.position = evt.transformation.apply(obj.position)
                 self.position = evt.current_position
         else:

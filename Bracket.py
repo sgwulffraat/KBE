@@ -18,6 +18,7 @@ from warning_pop_up import generate_warning
 sys.path.append('source')
 
 
+
 class Bracket(GeomBase):
     # Shape input: rectangle, circle or file
     shapeoptions = ["rectangle", "circle", "file"]
