@@ -8,6 +8,8 @@ from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent, 
 from shapely.geometry import Polygon, Point
 import numpy as np
 from warning_pop_up import generate_warning
+from parapy.gui.display import refresh_top_window
+
 
 
 class ManipulateAnything(Base):
@@ -125,13 +127,20 @@ class ManipulateAnything(Base):
     # Veto connector placement outside of bracket domain
     def _on_motion(self, evt: MotionEvent):
         current_position = evt.current_position
-        pol_connector = self._pol_connector(current_position)
+        pol_connector = self._pol_connector_with_tol(current_position)
+        pol_connector_no_tol = self._pol_connector_no_tol(current_position)
+        self.slctd_conn.color = 'orange'
+        refresh_top_window()
         if self.pol_container.contains(pol_connector) is False:
             evt.Veto()
-        if self.pol_container.contains(pol_connector) is False:
-            evt.Veto()
+        if len(self.pol_list) != 0:
+            cond = []
+            for i in range(0, len(self.pol_list)):
+                cond.append(pol_connector_no_tol.overlaps(self.pol_list[i]))
+            if any(cond):
+                self.slctd_conn.color = 'red'
 
-    def _pol_connector(self, position):
+    def _pol_connector_with_tol(self, position):
         if len(self.slctd_conn.faces) == 3:
             pol_connector = Point(position.x, position.y).buffer(self.slctd_conn.radius + self.to_manipulate.tol)
         elif len(self.slctd_conn.faces) == 6:
@@ -166,6 +175,47 @@ class ManipulateAnything(Base):
                                       position.y + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
                                                     * (position.orientation.y[0])
                                                     + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    * (position.orientation.y[1])))
+                                     ])
+        else:
+            print("No valid connector found")
+        return pol_connector
+
+    def _pol_connector_no_tol(self, position):
+        if len(self.slctd_conn.faces) == 3:
+            pol_connector = Point(position.x, position.y).buffer(self.slctd_conn.radius)
+        elif len(self.slctd_conn.faces) == 6:
+            pol_connector = Polygon([(position.x + ((self.slctd_conn.width/2)
+                                                    * (position.orientation.x[0])
+                                                    - (self.slctd_conn.length/2)
+                                                    * (position.orientation.x[1])),
+                                      position.y + ((self.slctd_conn.width/2)
+                                                    * -(position.orientation.y[0])
+                                                    + (self.slctd_conn.length/2)
+                                                    * (position.orientation.y[1]))),
+                                     (position.x + ((self.slctd_conn.width/2)
+                                                    * (position.orientation.x[0])
+                                                    + (self.slctd_conn.length/2)
+                                                    * (position.orientation.x[1])),
+                                      position.y - ((self.slctd_conn.length/2)
+                                                    * (position.orientation.y[1])
+                                                    + (self.slctd_conn.width/2)
+                                                    * (position.orientation.y[0]))),
+                                     (position.x - ((self.slctd_conn.width/2)
+                                                    * (position.orientation.x[0])
+                                                    - (self.slctd_conn.length/2)
+                                                    * (position.orientation.x[1])),
+                                      position.y - ((self.slctd_conn.width/2)
+                                                    * -(position.orientation.y[0])
+                                                    + (self.slctd_conn.length/2)
+                                                    * (position.orientation.y[1]))),
+                                     (position.x - ((self.slctd_conn.width/2)
+                                                    * (position.orientation.x[0])
+                                                    + (self.slctd_conn.length/2)
+                                                    * (position.orientation.x[1])),
+                                      position.y + ((self.slctd_conn.width/2)
+                                                    * (position.orientation.y[0])
+                                                    + (self.slctd_conn.length/2)
                                                     * (position.orientation.y[1])))
                                      ])
         else:
@@ -218,7 +268,7 @@ class ManipulateAnything(Base):
 
     def _on_submit(self, evt: EndEvent, obj):
         current_position = evt.current_position
-        pol_connector = self._pol_connector(current_position)
+        pol_connector = self._pol_connector_no_tol(current_position)
         if len(self.pol_list) != 0:
             cond = []
             for i in range(0, len(self.pol_list)):
@@ -233,5 +283,7 @@ class ManipulateAnything(Base):
                 obj.position = evt.transformation.apply(obj.position)
                 self.position = evt.current_position
         else:
+            self.slctd_conn.color = 'green'
             obj.position = evt.transformation.apply(obj.position)
             self.position = evt.current_position
+

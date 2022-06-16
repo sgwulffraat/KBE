@@ -46,7 +46,7 @@ class Connector(GeomBase):
 
     @Part
     def circular_connector(self):
-        return Cylinder(radius=self.dim[0] if len(self.dim) == 1 else 0,
+        return Cylinder(radius=self.dim[0]/2 if len(self.dim) == 1 else 0,
                         height=self.height,
                         centered=False,
                         hidden=False if self.shape == "circle" else True,
