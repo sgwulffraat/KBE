@@ -227,32 +227,40 @@ class Bracket(GeomBase):
         return Connector(c_type=self.type1,
                          df=self.df,
                          n=self.n1,
+                         bracket_height=self.height,
                          cog=self.initial_placement[0:self.n1],
-                         rotation=[0]*self.n1)
+                         rotation=[0]*self.n1,
+                         label="Connector type 1")
 
     @Part
     def connector_part2(self):
         return Connector(c_type=self.type2,
                          df=self.df,
                          n=self.n2,
+                         bracket_height=self.height,
                          cog=self.initial_placement[self.n1:self.n1+self.n2],
-                         rotation=[0] * self.n2)
+                         rotation=[0] * self.n2,
+                         label="Connector type 2")
 
     @Part
     def connector_part3(self):
         return Connector(c_type=self.type3,
                          df=self.df,
                          n=self.n3,
+                         bracket_height=self.height,
                          cog=self.initial_placement[self.n1+self.n2:self.n1+self.n2+self.n3],
-                         rotation=[0] * self.n3)
+                         rotation=[0] * self.n3,
+                         label="Connector type 3")
 
     @Part
     def connector_part4(self):
         return Connector(c_type=self.type4,
                          df=self.df,
                          n=self.n4,
+                         bracket_height=self.height,
                          cog=self.initial_placement[self.n1+self.n2+self.n3:self.n1+self.n2+self.n3+self.n4],
-                         rotation=[0] * self.n4)
+                         rotation=[0] * self.n4,
+                         label="Connector type 4")
 
     @Part
     def bracket_box(self):
@@ -284,16 +292,36 @@ class Bracket(GeomBase):
     @Part
     def labels(self):
         return TextLabel(text="Bracket",
-                         position=self.bracket_box.cog,
+                         position=translate(rotate90(self.bracket_box.position, rotation_axis='z'),
+                                            'x', 1,
+                                            'y', 1,
+                                            'z', self.height),
                          overlay=True)
 
-
-
+    @Attribute(in_tree=True)
+    def labels_connectors(self):
+        labels = []
+        for i in self.connector_part1.cog:
+            labels.append(TextLabel(text=self.type1,
+                                    position=Position(Point(i[0], i[1], self.height)),
+                                    overlay=True))
+        for i in self.connector_part2.cog:
+            labels.append(TextLabel(text=self.type2,
+                                    position=Position(Point(i[0], i[1], self.height)),
+                                    overlay=True))
+        for i in self.connector_part3.cog:
+            labels.append(TextLabel(text=self.type3,
+                                    position=Position(Point(i[0], i[1], self.height)),
+                                    overlay=True))
+        for i in self.connector_part4.cog:
+            labels.append(TextLabel(text=self.type4,
+                                    position=Position(Point(i[0], i[1], self.height)),
+                                    overlay=True))
+        return labels
 
 
 if __name__ == '__main__':
     from parapy.gui import display
     bracket_obj = Bracket()
-    obj = ManipulateAnything(to_manipulate=bracket_obj,
-                             pts_container=bracket_obj.pts_container)
+    obj = ManipulateAnything(to_manipulate=bracket_obj, pts_container=bracket_obj.pts_container)
     display([obj])

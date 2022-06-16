@@ -12,42 +12,21 @@ from warning_pop_up import generate_warning
 
 class ManipulateAnything(Base):
     label = Input('right-click the connector(s) to manipulate selected')
-    to_manipulate = Input(in_tree=True)
+    to_manipulate = Input(in_tree=True, label='Design bracket here')
     rotation_increment = Input(45)
     pts_container = Input()
 
-    slctd_conn = Input('no connector selected yet')
+    slctd_conn = Input('No connector selected yet')
     # Allow pop up
     popup_gui = Input(True, label="Allow pop-up")
 
     @Attribute(in_tree=True)
     def tol_boundaries(self):
+        bounds = []
         if len(self.bound_list) != 0:
-            bounds = []
             for i in self.bound_list:
                 bounds.append(para_Polygon(i, color='red', transparency=.5))
-        else:
-            bounds = "No stationary connectors present"
         return bounds
-
-    # @Attribute(in_tree=True)
-    # def boundary(self):
-    #     edges = []
-    #     for i in range(0, len(self.to_manipulate.connector_part.cog)):
-    #         if self.to_manipulate.connector_part.shape == 'square':
-    #             rect_surface = RectangularSurface(width=self.to_manipulate.connector_part.square_connector[i].width
-    #                                                     + self.to_manipulate.tol,
-    #                                               length=self.to_manipulate.connector_part.square_connector[i].length
-    #                                                     + self.to_manipulate.tol,
-    #                                               position=self.to_manipulate.connector_part.square_connector[i].position,
-    #                                               color='red',
-    #                                               transparency=.2).edges
-    #             edges.append(rect_surface)
-    #         # if self.to_manipulate.connector_part.shape == 'circle':
-    #         #     ids.append(self.to_manipulate.connector_part.circular_connector[i].id)
-    #         # if self.to_manipulate.connector_part.shape == 'rectangle':
-    #         #     ids.append(self.to_manipulate.connector_part.rectangle_connector[i].id)
-    #     return edges
 
     @Attribute
     def pol_container(self):
@@ -60,36 +39,38 @@ class ManipulateAnything(Base):
     @Attribute
     def bound_list(self):
         bound_list = []
-        for i in range(0, len(self.to_manipulate.connector_part.cog)):
-            if self.to_manipulate.connector_part.shape == 'square':
-                if self.to_manipulate.connector_part.square_connector[i].id != self.slctd_conn.id:
-                    stationary_connector = self.to_manipulate.connector_part.square_connector[i]
-                    bound_pts = self.pol_pts(stationary_connector)
-                    bound_para_points = []
-                    for j in range(0, 4):
-                        bound_para_points.append(para_Point(bound_pts[j][0],
-                                                            bound_pts[j][1],
-                                                            self.to_manipulate.height))
-                    bound_list.append(bound_para_points)
-            # if self.to_manipulate.connector_part.shape == 'circle':
-            #     ids.append(self.to_manipulate.connector_part.circular_connector[i].id)
-            # if self.to_manipulate.connector_part.shape == 'rectangle':
-            #     ids.append(self.to_manipulate.connector_part.rectangle_connector[i].id)
+        for i in range(0, len(self.to_manipulate.connector_part1.cog)):
+            if type(self.slctd_conn) is not str:
+                if self.to_manipulate.connector_part1.shape == 'square':
+                    if self.to_manipulate.connector_part1.square_connector[i].id != self.slctd_conn.id:
+                        stationary_connector = self.to_manipulate.connector_part1.square_connector[i]
+                        bound_pts = self.pol_pts(stationary_connector)
+                        bound_para_points = []
+                        for j in range(0, 4):
+                            bound_para_points.append(para_Point(bound_pts[j][0],
+                                                                bound_pts[j][1],
+                                                                self.to_manipulate.height))
+                        bound_list.append(bound_para_points)
+            # if self.to_manipulate.connector_part1.shape == 'circle':
+            #     ids.append(self.to_manipulate.connector_part1.circular_connector[i].id)
+            # if self.to_manipulate.connector_part1.shape == 'rectangle':
+            #     ids.append(self.to_manipulate.connector_part1.rectangle_connector[i].id)
         return bound_list
 
     @Attribute
     def pol_list(self):
         pol_list = []
-        for i in range(0, len(self.to_manipulate.connector_part.cog)):
-            if self.to_manipulate.connector_part.shape == 'square':
-                if self.to_manipulate.connector_part.square_connector[i].id != self.slctd_conn.id:
-                    stationary_connector = self.to_manipulate.connector_part.square_connector[i]
-                    polygon = Polygon(self.pol_pts(stationary_connector))
-                    pol_list.append(polygon)
-            # if self.to_manipulate.connector_part.shape == 'circle':
-            #     ids.append(self.to_manipulate.connector_part.circular_connector[i].id)
-            # if self.to_manipulate.connector_part.shape == 'rectangle':
-            #     ids.append(self.to_manipulate.connector_part.rectangle_connector[i].id)
+        for i in range(0, len(self.to_manipulate.connector_part1.cog)):
+            if type(self.slctd_conn) is not str:
+                if self.to_manipulate.connector_part1.shape == 'square':
+                    if self.to_manipulate.connector_part1.square_connector[i].id != self.slctd_conn.id:
+                        stationary_connector = self.to_manipulate.connector_part1.square_connector[i]
+                        polygon = Polygon(self.pol_pts(stationary_connector))
+                        pol_list.append(polygon)
+                # if self.to_manipulate.connector_part1.shape == 'circle':
+                #     ids.append(self.to_manipulate.connector_part1.circular_connector[i].id)
+                # if self.to_manipulate.connector_part1.shape == 'rectangle':
+                #     ids.append(self.to_manipulate.connector_part1.rectangle_connector[i].id)
         return pol_list
 
     def pol_pts(self, stationary_connector):
