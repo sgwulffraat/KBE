@@ -7,9 +7,9 @@ from parapy.gui.events import EVT_RIGHT_CLICK_OBJECT
 from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent, Translation, Rotation
 from shapely.geometry import Polygon, Point
 import numpy as np
-from warning_pop_up import generate_warning
+from warnings_and_functions import generate_warning, show, hide
 from parapy.gui.display import refresh_top_window
-from time import sleep
+
 
 
 class ManipulateAnything(Base):
@@ -17,8 +17,8 @@ class ManipulateAnything(Base):
     to_manipulate = Input(in_tree=True, label='Design bracket here')
     rotation_increment = Input(45)
     pts_container = Input()
-
     slctd_conn = Input('No connector selected yet')
+    connector_color = Input([83, 120, 128])
     # Allow pop up
     popup_gui = Input(True, label="Allow pop-up")
 
@@ -32,7 +32,7 @@ class ManipulateAnything(Base):
         return pol_container
 
     # Parapy GUI boundary shape
-    @Attribute(in_tree=True)
+    @Attribute
     def tol_bounds(self):
         bounds = []
         for i in range(0, len(self.to_manipulate.connector_part1.cog)):
@@ -137,6 +137,7 @@ class ManipulateAnything(Base):
         else:
             self.start_manipulation_one(evt.selected[0], evt.source)
             self.slctd_conn = evt.selected[0]
+            show(self.tol_bounds)
 
     # Veto connector placement outside of bracket domain and change color depending on overlap conditions
     def _on_motion(self, evt: MotionEvent):
@@ -152,10 +153,10 @@ class ManipulateAnything(Base):
             if any(cond):
                 self.slctd_conn.color = 'red'
             else:
-                self.slctd_conn.color = 'orange'
+                self.slctd_conn.color = 'green'
             refresh_top_window()
         else:
-            self.slctd_conn.color = 'orange'
+            self.slctd_conn.color = 'green'
 
     # Function to get shapely polygon of selected connector with tolerances applied (used for container boundary check)
     def _pol_connector_with_tol(self, position):
@@ -298,12 +299,15 @@ class ManipulateAnything(Base):
                 warnings.warn(msg)
                 if self.popup_gui:
                     generate_warning("Warning: Position not valid", msg)
+                raise Exception(msg)
             else:
-                self.slctd_conn.color = 'green'
+                self.slctd_conn.color = self.connector_color
                 obj.position = evt.transformation.apply(obj.position)
                 self.position = evt.current_position
+                hide(self.tol_bounds)
         else:
-            self.slctd_conn.color = 'green'
+            self.slctd_conn.color = self.connector_color
             obj.position = evt.transformation.apply(obj.position)
             self.position = evt.current_position
+            hide(self.tol_bounds)
 

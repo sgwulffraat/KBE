@@ -14,7 +14,7 @@ import sys
 from source.evolutionary import generate_population
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from working_testing import create_knapsack_packing_problem
-from warning_pop_up import generate_warning
+from warnings_and_functions import generate_warning
 sys.path.append('source')
 
 
@@ -56,6 +56,9 @@ class Bracket(GeomBase):
 
     # Height or thickness of the to be designed bracket
     height = Input(1, validator=Positive(incl_zero=True), label="Thickness of bracket")
+
+    # Connector color
+    connector_color = Input([98, 179, 196])
 
     # Allow pop-up
     popup_gui = Input(True, label="Allow pop-up")
@@ -231,6 +234,7 @@ class Bracket(GeomBase):
                          bracket_height=self.height,
                          cog=self.initial_placement[0:self.n1],
                          rotation=[0]*self.n1,
+                         color=self.connector_color,
                          label="Connector type 1")
 
     @Part
@@ -241,6 +245,7 @@ class Bracket(GeomBase):
                          bracket_height=self.height,
                          cog=self.initial_placement[self.n1:self.n1+self.n2],
                          rotation=[0] * self.n2,
+                         color=self.connector_color,
                          label="Connector type 2")
 
     @Part
@@ -251,6 +256,7 @@ class Bracket(GeomBase):
                          bracket_height=self.height,
                          cog=self.initial_placement[self.n1+self.n2:self.n1+self.n2+self.n3],
                          rotation=[0] * self.n3,
+                         color=self.connector_color,
                          label="Connector type 3")
 
     @Part
@@ -261,6 +267,7 @@ class Bracket(GeomBase):
                          bracket_height=self.height,
                          cog=self.initial_placement[self.n1+self.n2+self.n3:self.n1+self.n2+self.n3+self.n4],
                          rotation=[0] * self.n4,
+                         color=self.connector_color,
                          label="Connector type 4")
 
     @Part
@@ -270,7 +277,8 @@ class Bracket(GeomBase):
                    height=self.height,
                    centered=False,
                    hidden=False if self.bracketshape == "rectangle" else True,
-                   label="Bracket")
+                   label="Bracket",
+                   color=[199, 192, 185])
 
     @Part
     def bracket_cylinder(self):
@@ -278,13 +286,15 @@ class Bracket(GeomBase):
                         height=self.height,
                         centered=False,
                         hidden=False if self.bracketshape == "circle" else True,
-                        label="Bracket")
+                        label="Bracket",
+                        color=[199, 192, 185])
 
     @Part
     def bracket_from_file(self):
         return STEPReader(filename=self.filename,
                           hidden=False if self.bracketshape == "file" else True,
-                          label="Bracket")
+                          label="Bracket",
+                          color=[199, 192, 185])
 
     @Part
     def step(self):
@@ -324,5 +334,7 @@ class Bracket(GeomBase):
 if __name__ == '__main__':
     from parapy.gui import display
     bracket_obj = Bracket()
-    obj = ManipulateAnything(to_manipulate=bracket_obj, pts_container=bracket_obj.pts_container)
+    obj = ManipulateAnything(to_manipulate=bracket_obj,
+                             pts_container=bracket_obj.pts_container,
+                             connector_color=bracket_obj.connector_color)
     display([obj])

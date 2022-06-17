@@ -10,7 +10,7 @@ class Connector(GeomBase):
     height = Input(1)
     cog = Input([[0, 0, 0]])
     rotation = Input([0])
-    color = Input('red')
+    color = Input([83, 120, 128])
     deg = Input(False)
     bracket_height = Input()
 
@@ -42,7 +42,8 @@ class Connector(GeomBase):
                                              'z', self.bracket_height),
                                    'z', self.rotation[child.index],
                                    deg=self.deg),
-                   color=self.color)
+                   color=self.color,
+                   transparency=0.5)
 
     @Part
     def circular_connector(self):
@@ -59,7 +60,8 @@ class Connector(GeomBase):
                                       'z', self.bracket_height),
                             'z', self.rotation[child.index],
                             deg=self.deg),
-                        color=self.color)
+                        color=self.color,
+                        transparency=0.5)
 
     @Part
     def rectangle_connector(self):
@@ -77,4 +79,5 @@ class Connector(GeomBase):
                                  'z', self.bracket_height),
                        'z', self.rotation[child.index],
                        deg=self.deg),
-                   color=self.color)
+                   color=self.color,
+                   transparency=0.5)
