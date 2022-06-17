@@ -1,4 +1,6 @@
 from parapy.geom import *
+from parapy.gui.viewer import Viewer
+from parapy.gui.display import get_top_window
 from parapy.core import *
 from parapy.core.widgets import Dropdown, FilePicker
 from parapy.core.validate import *
@@ -14,7 +16,8 @@ import sys
 from source.evolutionary import generate_population
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from working_testing import create_knapsack_packing_problem
-from warnings_and_functions import generate_warning
+from warnings_and_functions import generate_warning, show
+from parapy.gui.events import EVT_LEFT_CLICK_OBJECT, EVT_SELECTION_CHANGED
 sys.path.append('source')
 
 
@@ -100,11 +103,6 @@ class Bracket(GeomBase):
         else:
             length = None
         return length
-
-    # @Attribute
-    # def connectors(self):
-    #     if len(self.connectors_list) > 0:
-    #         return ManipulateAnything(to_manipulate=self.connectors_list)
 
     @Attribute
     def initial_placement_problem(self):
@@ -225,6 +223,74 @@ class Bracket(GeomBase):
                                self.bracket_from_file.children[0].children[0].children[0].edges[i].start.y))
             container = Polygon(points)
         return container
+
+    # @Attribute(in_tree=True)
+    # def connectors(self):
+    #     return List()
+    #
+    # @action
+    # def add_connector(self):
+    #     connector = Connector(c_type=self.type1,
+    #                           df=self.df,
+    #                           n=self.n1,
+    #                           bracket_height=self.height,
+    #                           cog=self.initial_placement[0:self.n1],
+    #                           rotation=[0]*self.n1,
+    #                           color=self.connector_color,
+    #                           label="Connector selection")
+    #     self.connectors.append(connector)
+    #     if connector.shape == "rectangle":
+    #         show(connector.rectangle_connector)
+    #     elif connector.shape =="circle":
+    #         print("loop entered")
+    #         show(connector.circular_connector)
+    #     elif connector.shape == "square":
+    #         show(connector.square_connector)
+    #
+    # @action
+    # def delete_connector(self):
+    #     if self.selection == self.bracket_box \
+    #             or self.selection == self.bracket_cylinder \
+    #             or self.selection == self.bracket_from_file:
+    #         print("Deleting bracket not allowed")
+    #     else:
+    #         self.selection.remove(self.selection)
+
+    @Part
+    def connectors(self):
+        return MutableSequence(type=Connector,
+                               quantify=0,
+                               label=(f"Box {id(child.__this__)} at "
+                                      f"index: {child.index}"))
+
+    @action
+    def append_connector(self):
+        self.connectors.append(Connector(c_type=self.type1,
+                                         df=self.df,
+                                         n=self.n1,
+                                         bracket_height=self.height,
+                                         cog=self.initial_placement[0:self.n1],
+                                         rotation=[0]*self.n1,
+                                         color=self.connector_color,
+                                         label="Connector type 1"))
+
+    @action
+    def pop_last(self):
+        self.connectors.pop()
+
+    @action
+    def remove_connectors(self):
+        # Enter selection mode for the user to select connectors in the viewer
+        main_window = get_top_window()
+        context = ViewerSelection(main_window, multiple=True)
+        if context.start():
+            for obj in context.selected:
+                self.connectors.remove(obj)
+
+    @on_event(EVT_LEFT_CLICK_OBJECT)
+    def selection(self, evt):
+        selected_conn = evt.selected[0]
+        return selected_conn
 
     @Part
     def connector_part1(self):
