@@ -1,23 +1,22 @@
 from parapy.geom import *
-from parapy.gui.viewer import Viewer
-from parapy.gui.display import get_top_window
+from parapy.gui.display import get_top_window, refresh_top_window
 from parapy.core import *
 from parapy.core.widgets import Dropdown, FilePicker
 from parapy.core.validate import *
 from parapy.exchange import *
 from connector import Connector
-from connector_input_converter import connector_input_converter, read_connector_excel
-from shapely.geometry import Polygon
+from connector_input_converter import connector_input_converter, read_connector_excel, connector_class_input_converter
+from shapely.geometry import Polygon, Point
 from source.circle import Circle
 from parapy.geom import TextLabel
-from Manipulation import ManipulateAnything
+from Manipulation2 import ManipulateAnything
 import numpy as np
 import sys
 from source.evolutionary import generate_population
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from working_testing import create_knapsack_packing_problem
-from warnings_and_functions import generate_warning, show
-from parapy.gui.events import EVT_LEFT_CLICK_OBJECT, EVT_SELECTION_CHANGED
+from warnings_and_functions import generate_warning, show, hide, initial_item_placement
+from parapy.gui.actions import ViewerSelection
 sys.path.append('source')
 
 
@@ -66,9 +65,6 @@ class Bracket(GeomBase):
     # Allow pop-up
     popup_gui = Input(True, label="Allow pop-up")
 
-    # Connectors empty list
-    connectors_list = []
-
     # Toggle to generate initial placement of connectors
     generate_initial_placement = Input(False, widget=Dropdown([True, False], labels=['True', 'False']))
 
@@ -77,8 +73,6 @@ class Bracket(GeomBase):
     item_specialization_iter_proportion = Input(0.5)
     container = Input(Container(np.inf, Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])))
     items = Input(Item(Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]), 1, 0))
-
-    # Generate initial placement of connectors using greedy algorithm
 
     @Input
     def radius(self):
@@ -224,58 +218,52 @@ class Bracket(GeomBase):
             container = Polygon(points)
         return container
 
-    # @Attribute(in_tree=True)
-    # def connectors(self):
-    #     return List()
-    #
-    # @action
-    # def add_connector(self):
-    #     connector = Connector(c_type=self.type1,
-    #                           df=self.df,
-    #                           n=self.n1,
-    #                           bracket_height=self.height,
-    #                           cog=self.initial_placement[0:self.n1],
-    #                           rotation=[0]*self.n1,
-    #                           color=self.connector_color,
-    #                           label="Connector selection")
-    #     self.connectors.append(connector)
-    #     if connector.shape == "rectangle":
-    #         show(connector.rectangle_connector)
-    #     elif connector.shape =="circle":
-    #         print("loop entered")
-    #         show(connector.circular_connector)
-    #     elif connector.shape == "square":
-    #         show(connector.square_connector)
-    #
-    # @action
-    # def delete_connector(self):
-    #     if self.selection == self.bracket_box \
-    #             or self.selection == self.bracket_cylinder \
-    #             or self.selection == self.bracket_from_file:
-    #         print("Deleting bracket not allowed")
-    #     else:
-    #         self.selection.remove(self.selection)
+    # @Attribute(settable=True)
+    # def conn_count(self):
+    #     n = 0
+    #     return n
 
     @Part
     def connectors(self):
         return MutableSequence(type=Connector,
-                               quantify=0,
-                               label=(f"Box {id(child.__this__)} at "
-                                      f"index: {child.index}"))
+                               quantify=0)
+
+    @Attribute
+    def poly_container(self):
+        if len(self.pts_container) > 0:
+            pol_container = Polygon(self.pts_container)
+        else:
+            pol_container = Point(0, 0).buffer(self.pts_container)
+        return pol_container
 
     @action
     def append_connector(self):
-        self.connectors.append(Connector(c_type=self.type1,
-                                         df=self.df,
-                                         n=self.n1,
-                                         bracket_height=self.height,
-                                         cog=self.initial_placement[0:self.n1],
-                                         rotation=[0]*self.n1,
-                                         color=self.connector_color,
-                                         label="Connector type 1"))
+        connector = Connector(c_type=self.type1,
+                              df=self.df,
+                              n=self.n1,
+                              bracket_height=self.height,
+                              bracket=self.find_child_by_label("Bracket"),
+                              lastplaced_item=self.connectors[-1] if len(self.connectors) > 0 else "None",
+                              poly_container=self.poly_container,
+                              tol=self.tol,
+                              label="Connector type 1",
+                              cog=initial_item_placement(self=self, bracket=self.find_child_by_label("Bracket"),
+                                                         lastplaced_item=self.connectors[-1] if len(self.connectors) > 0 else "None",
+                                                         half_width=connector_class_input_converter(self.type1, self.df)[0][0] / 2,
+                                                         half_length=connector_class_input_converter(self.type1, self.df)[0][1] / 2,
+                                                         step=0.5),
+                              rotation=[0] * self.n1)
+        self.connectors.append(connector)
+        for i in range(0, self.n1):
+            if connector.shape == "rectangle" or connector.shape == "square":
+                print("loop entered")
+                show(connector.rectangle_connector[i])
+            if connector.shape == "circle":
+                show(connector.circular_connector[i])
 
     @action
     def pop_last(self):
+        hide(self.connectors[-1].find_children(fn=lambda conn: conn.__class__ == Box or conn.__class__ == Cylinder))
         self.connectors.pop()
 
     @action
@@ -284,57 +272,73 @@ class Bracket(GeomBase):
         main_window = get_top_window()
         context = ViewerSelection(main_window, multiple=True)
         if context.start():
-            for obj in context.selected:
-                self.connectors.remove(obj)
+            for slctd_obj in context.selected:
+                prnt = slctd_obj.parent.index
+                if slctd_obj.__class__ == Box:
+                    if slctd_obj == self.bracket_box \
+                            or slctd_obj == self.bracket_cylinder \
+                            or slctd_obj == self.bracket_from_file:
+                        print("Bracket cannot be deleted.")
+                    else:
+                        hide(self.connectors[prnt].rectangle_connector[slctd_obj.index])
+                        self.connectors[prnt].rectangle_connector.remove(slctd_obj)
+                    if self.connectors[prnt].rectangle_connector.quantify == 0:
+                        self.connectors.remove(self.connectors[prnt])
+                if slctd_obj.__class__ == Cylinder:
+                    hide(self.connectors[prnt].circular_connector[slctd_obj.index])
+                    self.connectors[prnt].circular_connector.remove(slctd_obj)
+                    if self.connectors[prnt].circular_connector.quantify == 0:
+                        self.connectors.remove(self.connectors[prnt])
 
-    @on_event(EVT_LEFT_CLICK_OBJECT)
-    def selection(self, evt):
-        selected_conn = evt.selected[0]
-        return selected_conn
+    @action
+    def test_find(self):
+        print(self.connectors.find_children(fn=lambda conn: conn.__class__ == Box))
+        print(self.connectors.find_children(fn=lambda conn: conn.__class__ == Cylinder))
 
-    @Part
-    def connector_part1(self):
-        return Connector(c_type=self.type1,
-                         df=self.df,
-                         n=self.n1,
-                         bracket_height=self.height,
-                         cog=self.initial_placement[0:self.n1],
-                         rotation=[0]*self.n1,
-                         color=self.connector_color,
-                         label="Connector type 1")
 
-    @Part
-    def connector_part2(self):
-        return Connector(c_type=self.type2,
-                         df=self.df,
-                         n=self.n2,
-                         bracket_height=self.height,
-                         cog=self.initial_placement[self.n1:self.n1+self.n2],
-                         rotation=[0] * self.n2,
-                         color=self.connector_color,
-                         label="Connector type 2")
-
-    @Part
-    def connector_part3(self):
-        return Connector(c_type=self.type3,
-                         df=self.df,
-                         n=self.n3,
-                         bracket_height=self.height,
-                         cog=self.initial_placement[self.n1+self.n2:self.n1+self.n2+self.n3],
-                         rotation=[0] * self.n3,
-                         color=self.connector_color,
-                         label="Connector type 3")
-
-    @Part
-    def connector_part4(self):
-        return Connector(c_type=self.type4,
-                         df=self.df,
-                         n=self.n4,
-                         bracket_height=self.height,
-                         cog=self.initial_placement[self.n1+self.n2+self.n3:self.n1+self.n2+self.n3+self.n4],
-                         rotation=[0] * self.n4,
-                         color=self.connector_color,
-                         label="Connector type 4")
+    # @Part
+    # def connector_part1(self):
+    #     return Connector(c_type=self.type1,
+    #                      df=self.df,
+    #                      n=self.n1,
+    #                      bracket_height=self.height,
+    #                      cog=self.initial_placement[0:self.n1],
+    #                      rotation=[0]*self.n1,
+    #                      color=self.connector_color,
+    #                      label="Connector type 1")
+    #
+    # @Part
+    # def connector_part2(self):
+    #     return Connector(c_type=self.type2,
+    #                      df=self.df,
+    #                      n=self.n2,
+    #                      bracket_height=self.height,
+    #                      cog=self.initial_placement[self.n1:self.n1+self.n2],
+    #                      rotation=[0] * self.n2,
+    #                      color=self.connector_color,
+    #                      label="Connector type 2")
+    #
+    # @Part
+    # def connector_part3(self):
+    #     return Connector(c_type=self.type3,
+    #                      df=self.df,
+    #                      n=self.n3,
+    #                      bracket_height=self.height,
+    #                      cog=self.initial_placement[self.n1+self.n2:self.n1+self.n2+self.n3],
+    #                      rotation=[0] * self.n3,
+    #                      color=self.connector_color,
+    #                      label="Connector type 3")
+    #
+    # @Part
+    # def connector_part4(self):
+    #     return Connector(c_type=self.type4,
+    #                      df=self.df,
+    #                      n=self.n4,
+    #                      bracket_height=self.height,
+    #                      cog=self.initial_placement[self.n1+self.n2+self.n3:self.n1+self.n2+self.n3+self.n4],
+    #                      rotation=[0] * self.n4,
+    #                      color=self.connector_color,
+    #                      label="Connector type 4")
 
     @Part
     def bracket_box(self):
@@ -375,26 +379,14 @@ class Bracket(GeomBase):
                                             'z', self.height),
                          overlay=True)
 
-    @Attribute(in_tree=True)
-    def labels_connectors(self):
-        labels = []
-        for i in self.connector_part1.cog:
-            labels.append(TextLabel(text=self.type1,
-                                    position=Position(Point(i[0], i[1], self.height)),
-                                    overlay=True))
-        for i in self.connector_part2.cog:
-            labels.append(TextLabel(text=self.type2,
-                                    position=Position(Point(i[0], i[1], self.height)),
-                                    overlay=True))
-        for i in self.connector_part3.cog:
-            labels.append(TextLabel(text=self.type3,
-                                    position=Position(Point(i[0], i[1], self.height)),
-                                    overlay=True))
-        for i in self.connector_part4.cog:
-            labels.append(TextLabel(text=self.type4,
-                                    position=Position(Point(i[0], i[1], self.height)),
-                                    overlay=True))
-        return labels
+    # @Attribute(in_tree=True)
+    # def labels_connectors(self):
+    #     labels = []
+    #     for i in self.connectors:
+    #         labels.append(TextLabel(text=self.type1,
+    #                                 position=Position(Point(i[0], i[1], self.height)),
+    #                                 overlay=True))
+    #     return labels
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 from parapy.core import Base, Input, on_event, Attribute
-from parapy.geom import Compound, Position, Vector, Circle
+from parapy.geom import Compound, Position, Vector, Circle, Box, Cylinder
 from parapy.core.validate import warnings
 from parapy.geom import Polygon as para_Polygon
 from parapy.geom import Point as para_Point
@@ -9,7 +9,6 @@ from shapely.geometry import Polygon, Point
 import numpy as np
 from warnings_and_functions import generate_warning, show, hide
 from parapy.gui.display import refresh_top_window
-
 
 
 class ManipulateAnything(Base):
@@ -35,57 +34,45 @@ class ManipulateAnything(Base):
     @Attribute
     def tol_bounds(self):
         bounds = []
-        for i in range(0, len(self.to_manipulate.connector_part1.cog)):
-            if type(self.slctd_conn) is not str:
-                if self.to_manipulate.connector_part1.shape == 'square':
-                    if self.to_manipulate.connector_part1.square_connector[i].id != self.slctd_conn.id:
-                        stationary_connector = self.to_manipulate.connector_part1.square_connector[i]
-                        bound_pts = self.pol_pts(stationary_connector)
-                        bound_para_points = []
-                        for j in range(0, 4):
-                            bound_para_points.append(para_Point(bound_pts[j][0],
-                                                                bound_pts[j][1],
-                                                                self.to_manipulate.height))
-                        bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
-                if self.to_manipulate.connector_part1.shape == 'circle':
-                    if self.to_manipulate.connector_part1.circular_connector[i].id != self.slctd_conn.id:
-                        stationary_connector = self.to_manipulate.connector_part1.circular_connector[i]
-                        bounds.append(Circle(radius=stationary_connector.radius+self.to_manipulate.tol,
-                                             position=stationary_connector.position,
-                                             color='red', transparency=.5))
-                if self.to_manipulate.connector_part1.shape == 'rectangle':
-                    if self.to_manipulate.connector_part1.rectangle_connector[i].id != self.slctd_conn.id:
-                        stationary_connector = self.to_manipulate.connector_part1.rectangle_connector[i]
-                        bound_pts = self.pol_pts(stationary_connector)
-                        bound_para_points = []
-                        for j in range(0, 4):
-                            bound_para_points.append(para_Point(bound_pts[j][0],
-                                                                bound_pts[j][1],
-                                                                self.to_manipulate.height))
-                        bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
+        box_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__ == Box)
+        cylinder_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__ == Cylinder)
+        if type(self.slctd_conn) is not str:
+            for cylinder in cylinder_list:
+                if cylinder.id != self.slctd_conn.id:
+                    stationary_cylinder = cylinder
+                    bounds.append(Circle(radius=stationary_cylinder.radius+self.to_manipulate.tol,
+                                         position=stationary_cylinder.position,
+                                         color='red', transparency=.5))
+            for box in box_list:
+                if box.id != self.slctd_conn.id:
+                    stationary_connector = box
+                    bound_pts = self.pol_pts(stationary_connector)
+                    bound_para_points = []
+                    for j in range(0, 4):
+                        bound_para_points.append(para_Point(bound_pts[j][0],
+                                                            bound_pts[j][1],
+                                                            self.to_manipulate.height))
+                    bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
         return bounds
 
     # List of stationary shapely polygons
     @Attribute
     def pol_list(self):
         pol_list = []
-        for i in range(0, len(self.to_manipulate.connector_part1.cog)):
-            if type(self.slctd_conn) is not str:
-                if self.to_manipulate.connector_part1.square_connector[i].id != self.slctd_conn.id:
-                    if self.to_manipulate.connector_part1.shape == 'square':
-                        stationary_connector = self.to_manipulate.connector_part1.square_connector[i]
-                        polygon = Polygon(self.pol_pts(stationary_connector))
-                        pol_list.append(polygon)
-                if self.to_manipulate.connector_part1.circular_connector[i].id != self.slctd_conn.id:
-                    if self.to_manipulate.connector_part1.shape == 'circle':
-                        stationary_connector = self.to_manipulate.connector_part1.circular_connector[i]
-                        polygon = Point((stationary_connector.cog[0]), (stationary_connector.cog[1])).buffer(stationary_connector.radius)
-                        pol_list.append(polygon)
-                if self.to_manipulate.connector_part1.rectangle_connector[i].id != self.slctd_conn.id:
-                    if self.to_manipulate.connector_part1.shape == 'rectangle':
-                        stationary_connector = self.to_manipulate.connector_part1.rectangle_connector[i]
-                        polygon = Polygon(self.pol_pts(stationary_connector))
-                        pol_list.append(polygon)
+        box_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__ == Box)
+        cylinder_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__ == Cylinder)
+        if type(self.slctd_conn) is not str:
+            for cylinder in cylinder_list:
+                if cylinder.id != self.slctd_conn.id:
+                    stationary_cylinder = cylinder
+                    polygon = Point((stationary_cylinder.cog[0]),
+                                    (stationary_cylinder.cog[1])).buffer(stationary_cylinder.radius + self.to_manipulate.tol)
+                    pol_list.append(polygon)
+            for box in box_list:
+                if box.id != self.slctd_conn.id:
+                    stationary_connector = box
+                    polygon = Polygon(self.pol_pts(stationary_connector))
+                    pol_list.append(polygon)
         return pol_list
 
     # Function to get edge points of any rectangular connector

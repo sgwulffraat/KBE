@@ -1,49 +1,54 @@
-from parapy.core import Part, action, child
-from parapy.core.sequence import MutableSequence
-from parapy.geom import Box, GeomBase, translate
-from parapy.gui import get_top_window
-from parapy.gui.actions import ViewerSelection
+from parapy.core import Base, Part, Input
 
 
-class MutableBoxesExample(GeomBase):
+class Foo(Base):
+    parsing_color = Input('purple')
+    no_parsing_color = Input('red')
 
     @Part
-    def boxes(self):
-        return MutableSequence(type=Box, quantify=2,
-                               width=1, length=1, height=child.index + 1,
-                               position=translate(self.position, 'x',
-                                                  child.index),
-                               label=(f"Box {id(child.__this__)} at "
-                                      f"index: {child.index}"))
+    def parsing(self):
+        return Base(color=self.parsing_color)
 
-    @action
-    def append_red_box(self):
-        self.boxes.append(Box(1, 1, 1, color='red'))
-
-    @action
-    def append_green_box(self):
-        self.boxes.append(Box(1, 1, 1, color='green'))
-
-    @action
-    def append_box(self):
-        self.boxes.append(Box())  # parameters are obtained from parent
-
-    @action
-    def pop_last(self):
-        self.boxes.pop()
-
-    @action
-    def remove_boxes(self):
-        # Enter selection mode for the user to select boxes in the viewer
-        main_window = get_top_window()
-        context = ViewerSelection(main_window, multiple=True)
-        if context.start():
-            for obj in context.selected:
-                self.boxes.remove(obj)
+    @Part(parse=False)
+    def no_parsing(self):
+        return Base(color=self.no_parsing_color)
 
 
-if __name__ == '__main__':
-    from parapy.gui import display
+foo = Foo()
 
-    obj = MutableBoxesExample()
-    display(obj, autodraw=True)
+# the default behaviour of a Part is that it will evaluate the Inputs of the
+# child lazy:
+parsing = foo.parsing
+assert not foo.get_slot_status('parsing_color')  # parsing color not evaluated
+# requesting the color on parsing:
+print(f"parsing has the color {parsing.color}")
+assert foo.get_slot_status('parsing_color')  # now it is evaluated
+
+# before no_parsing is calculated:
+assert not foo.get_slot_status('no_parsing_color')  # not yet evaluated
+
+no_parsing = foo.no_parsing
+# requesting the object will immediately evaluate no_parsing_color
+assert foo.get_slot_status('no_parsing_color')  # it is evaluated
+
+# Both instances will receive 'foo' as their parent:
+print(f"parent parsing: {foo.parsing.parent}, "
+      f"parent no_parsing: {foo.no_parsing.parent}, "
+      f"foo: {foo}")
+
+
+class Bar(Base):
+    @Part(parse=False)
+    def quz(self):
+        # not having a Part allows you to use any Python syntax you like,
+        # at the cost of evaluating all the passed Inputs as soon as
+        # quz is requested.
+        # Every ParaPy object that is returned will become a child
+        return [Base(color='black'), Base(color='white')]
+
+
+bar = Bar()
+# both Base instances have received a parent
+print(f"parent quz[0]: {bar.quz[0].parent}, "
+      f"parent quz[1]: {bar.quz[1].parent}, "
+      f"bar: {bar}")
