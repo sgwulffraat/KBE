@@ -89,17 +89,12 @@ class Connector(GeomBase):
 
     @Part
     def circular_connector(self):
-        return MutableSequence(type= Cylinder, radius=self.dim[0]/2 if len(self.dim) == 1 else 0,
+        return MutableSequence(type=Cylinder, radius=self.dim[0]/2,
                                height=self.height,
                                centered=False,
                                hidden=False if self.shape == "circle" else True,
                                label=self.c_type,
                                quantify=self.n,
-                               # position=self.initial_item_placement(bracket=self.bracket,
-                               #                                      lastplaced_item=self.lastplaced_item,
-                               #                                      half_width=self.dim[0] / 2,
-                               #                                      half_length=self.dim[0] / 2,
-                               #                                      step=0.5),
                                position=rotate(
                                                       translate(self.position,
                                                                 'x', self.cog[child.index][0],
@@ -112,18 +107,17 @@ class Connector(GeomBase):
 
     @Part
     def rectangle_connector(self):
-        return MutableSequence(type=Box, width=self.dim[0] if len(self.dim) == 2 else 0,
-                               length=self.dim[1] if len(self.dim) == 2 else 0,
+        return MutableSequence(type=Box, width=self.dim[0],
+                               length=self.dim[1],
                                height=self.height,
                                centered=True,
                                hidden=False if self.shape == "rectangle" or self.shape == "square" else True,
                                label=self.c_type,
                                quantify=self.n,
-                               # position=self.initial_item_placement(bracket=self.bracket,
-                               #                                      lastplaced_item=self.lastplaced_item,
-                               #                                      half_width=self.dim[0] / 2,
-                               #                                      half_length=self.dim[1] / 2,
-                               #                                      step=0.5),
+                               position=translate(self.position,
+                                                  'x', self.cog[child.index][0],
+                                                  'y', self.cog[child.index][1],
+                                                  'z', self.bracket_height),
                                color=self.color,
                                transparency=0.5)
 

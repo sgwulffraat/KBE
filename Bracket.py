@@ -99,6 +99,15 @@ class Bracket(GeomBase):
         return length
 
     @Attribute
+    def bracket_shower(self):
+        if self.bracketshape == "rectangle":
+            show(self.bracket_box)
+        if self.bracketshape == "circle":
+            hide(self.bracket_box)
+            show(self.bracket_cylinder)
+
+
+    @Attribute
     def initial_placement_problem(self):
         problems, problem_names, manual_solutions = create_knapsack_packing_problem(self.initial_placement_container,
                                                                                     self.initial_placement_items[0])
@@ -195,7 +204,8 @@ class Bracket(GeomBase):
         if self.bracketshape == "rectangle":
             pts_container = [(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)]
         if self.bracketshape == "circle":
-            pts_container = self.radius
+            pts_container = [self.radius]
+            print(len(pts_container))
         if self.bracketshape == 'file':
             points = []
             for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
@@ -230,13 +240,13 @@ class Bracket(GeomBase):
 
     @Attribute
     def poly_container(self):
-        if len(self.pts_container) > 0:
+        if len(self.pts_container) > 1:
             pol_container = Polygon(self.pts_container)
         else:
-            pol_container = Point(0, 0).buffer(self.pts_container)
+            pol_container = Point(self.radius, self.radius).buffer(self.radius)
         return pol_container
 
-    @action
+    @action(button_label='ADD')
     def append_connector(self):
         connector = Connector(c_type=self.type1,
                               df=self.df,
@@ -251,22 +261,20 @@ class Bracket(GeomBase):
                                                          lastplaced_item=self.connectors[-1] if len(self.connectors) > 0 else "None",
                                                          half_width=connector_class_input_converter(self.type1, self.df)[0][0] / 2,
                                                          half_length=connector_class_input_converter(self.type1, self.df)[0][1] / 2,
-                                                         step=0.5),
-                              rotation=[0] * self.n1)
+                                                         step=0.5, n=self.n1, tol=self.tol))
         self.connectors.append(connector)
         for i in range(0, self.n1):
             if connector.shape == "rectangle" or connector.shape == "square":
-                print("loop entered")
                 show(connector.rectangle_connector[i])
             if connector.shape == "circle":
                 show(connector.circular_connector[i])
 
-    @action
+    @action(button_label='DELETE LAST')
     def pop_last(self):
         hide(self.connectors[-1].find_children(fn=lambda conn: conn.__class__ == Box or conn.__class__ == Cylinder))
         self.connectors.pop()
 
-    @action
+    @action(button_label='DELETE SELECTION')
     def remove_connectors(self):
         # Enter selection mode for the user to select connectors in the viewer
         main_window = get_top_window()
@@ -278,7 +286,10 @@ class Bracket(GeomBase):
                     if slctd_obj == self.bracket_box \
                             or slctd_obj == self.bracket_cylinder \
                             or slctd_obj == self.bracket_from_file:
-                        print("Bracket cannot be deleted.")
+                        msg = "Warning: Bracket can not be deleted"
+                        warnings.warn(msg)
+                        if self.popup_gui:
+                            generate_warning("Warning: Invalid action", msg)
                     else:
                         hide(self.connectors[prnt].rectangle_connector[slctd_obj.index])
                         self.connectors[prnt].rectangle_connector.remove(slctd_obj)
@@ -289,12 +300,6 @@ class Bracket(GeomBase):
                     self.connectors[prnt].circular_connector.remove(slctd_obj)
                     if self.connectors[prnt].circular_connector.quantify == 0:
                         self.connectors.remove(self.connectors[prnt])
-
-    @action
-    def test_find(self):
-        print(self.connectors.find_children(fn=lambda conn: conn.__class__ == Box))
-        print(self.connectors.find_children(fn=lambda conn: conn.__class__ == Cylinder))
-
 
     # @Part
     # def connector_part1(self):
@@ -354,6 +359,7 @@ class Bracket(GeomBase):
     def bracket_cylinder(self):
         return Cylinder(radius=self.radius,
                         height=self.height,
+                        position=translate(self.position, 'x', self.radius, 'y', self.radius),
                         centered=False,
                         hidden=False if self.bracketshape == "circle" else True,
                         label="Bracket",

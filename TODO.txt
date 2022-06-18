@@ -6,18 +6,20 @@ General
 - input file
 - pep8 fix (shorter lines, commenting, etc)
 - UML & Activity diagram
-- correct height placing of connectors (z = 0.5 * bracket_height)
+
+Optimization
+- compatible with new format
+
+Bracket
+- initial solution compatible
+- optimize_items
+- max x max y bracket from file
 
 Manipulable:
-- Error messages for overlap
-- Automatic boundaries using shapely iswithin() for circular remove tolerance
 - Colors & Labels
 - Optimized solution manipulable
-
-Algorithme
-- Initial solution based on heuristics
-- Simpler optimization at begin; Design of Experiments algorithme
-- Rotation increment
+- testing from file
+- action decorator buttons
 
 Structural
 - simplified package open source

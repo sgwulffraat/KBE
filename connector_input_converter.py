@@ -60,7 +60,7 @@ def connector_class_input_converter(type, df):
             shape = 'square'
         if type[4:6] == '24':
             d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]]
-            size = [d]
+            size = [d, d]
             shape = 'circle'
     elif type[0:2] == "EN":
         shape = 'rectangle'

@@ -24,10 +24,10 @@ class ManipulateAnything(Base):
     # Shapely polygon of container
     @Attribute
     def pol_container(self):
-        if len(self.to_manipulate.pts_container) > 0:
+        if len(self.to_manipulate.pts_container) > 1:
             pol_container = Polygon(self.pts_container)
         else:
-            pol_container = Point(0, 0).buffer(self.pts_container)
+            pol_container = Point(self.to_manipulate.radius, self.to_manipulate.radius).buffer(self.to_manipulate.radius)
         return pol_container
 
     # Parapy GUI boundary polygon or circle
