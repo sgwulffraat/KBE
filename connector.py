@@ -13,7 +13,7 @@ class Connector(GeomBase):
     rotation = Input([0])
     color = Input([83, 120, 128])
     deg = Input(False)
-    bracket_height = Input()
+    bracket_height = Input(1)
     bracket = Input()
     lastplaced_item = Input()
     tol = Input()
@@ -111,10 +111,12 @@ class Connector(GeomBase):
                                hidden=False if self.shape == "rectangle" or self.shape == "square" else True,
                                label=self.c_type,
                                quantify=self.n,
-                               position=translate(self.position,
-                                                  'x', self.cog[child.index][0],
-                                                  'y', self.cog[child.index][1],
-                                                  'z', self.bracket_height + self.height/2),
+                               position=rotate(translate(self.position,
+                                                         'x', self.cog[child.index][0],
+                                                         'y', self.cog[child.index][1],
+                                                         'z', self.bracket_height + self.height/2),
+                                               'z', self.rotation[child.index],
+                                               deg=True),
                                color=self.color,
                                transparency=0.5)
 

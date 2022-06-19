@@ -235,7 +235,7 @@ class Bracket(GeomBase):
                                  (self.width - 0.5 * self.tol, self.length - 0.5 * self.tol),
                                  (0.0 + 0.5 * self.tol, self.length - 0.5 * self.tol)])
         if self.bracketshape == "circle":
-            container = Circle((0, 0), self.radius - self.tol)
+            container = Circle((self.radius, self.radius), self.radius - self.tol)
         if self.bracketshape == 'file':
             points = []
             for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
