@@ -65,198 +65,78 @@ class InitialSolution(GeomBase):
         # If True, manual solution is generated based on placement of connectors
         if self.manual_initial_solution:
             print("Into initial solution loop")
+
+            # Add first connector type to initial solution in population with correct placement and rotation
             index = 0
-            for i in self.connector_parts: #[self.connector_part1, self.connector_part2, self.connector_part3, self.connector_part4]:
-                print("Entered initial solution loop")
-                print(i)
+            for i in self.connector_parts:
                 if i.c_type == self.type1:
-                    print("Entered type1")
-                    if i.shape == "square" or "rectangle":
+                    if i.shape == "square" or i.shape == "rectangle":
                         j = i.rectangle_connector
                     elif i.shape == "circle":
                         j = i.circular_connector
                     for k in range(len(j)):
                         shape = self.items[index].shape
-                        print("part1 index:", index)
                         x, y = j[k].cog[0], j[k].cog[1]
-                        print("conn_part1:", shape, x, y)
                         rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
                         print(rotation)
                         pop.placed_items[index] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
                         pop.value = pop.value + self.items[index].value
-                        print("MIL20 value:", self.items[index].value)
                         pop.weight = pop.weight + self.items[index].weight
-                        print("MIL20 weight:", self.items[index].weight)
                         index = index + 1
 
+            # Add second connector type to initial solution in population with correct placement and rotation
             index = self.n1_problem
-            for i in self.connector_parts:  # [self.connector_part1, self.connector_part2, self.connector_part3, self.connector_part4]:
-                print(i)
-                print("Entered second loop")
+            for i in self.connector_parts:
                 if i.c_type == self.type2:
-                    print("Entered type2")
-                    if i.shape == "square" or "rectangle":
+                    if i.shape == "square" or i.shape == "rectangle":
                         j = i.rectangle_connector
                     elif i.shape == "circle":
                         j = i.circular_connector
                     for k in range(len(j)):
                         shape = self.items[index].shape
-                        print("part2 index:", index)
                         x, y = j[k].cog[0], j[k].cog[1]
-                        print("conn_part2:", shape, x, y)
                         rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
                         print(rotation)
                         pop.placed_items[index] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
                         pop.value = pop.value + self.items[index].value
-                        print("MIL24 value:", self.items[index].value)
                         pop.weight = pop.weight + self.items[index].weight
-                        print("MIL24 weight:", self.items[index].weight)
                         index = index + 1
+
+            # Add third connector type to initial solution in population with correct placement and rotation
             index = self.n1_problem + self.n2_problem
-            for i in self.connector_parts:  # [self.connector_part1, self.connector_part2, self.connector_part3, self.connector_part4]:
-                print(i)
+            for i in self.connector_parts:
                 if i.c_type == self.type3:
-                    if i.shape == "square" or "rectangle":
+                    if i.shape == "square" or i.shape == "rectangle":
                         j = i.rectangle_connector
                     elif i.shape == "circle":
                         j = i.circular_connector
                     for k in range(len(j)):
                         shape = self.items[index].shape
-                        print("part3 index:", index)
                         x, y = j[k].cog[0], j[k].cog[1]
-                        print("conn_part3:", shape, x, y)
                         rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
                         print(rotation)
                         pop.placed_items[index] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
                         pop.value = pop.value + self.items[index].value
-                        print("EN2 value:", self.items[index].value)
                         pop.weight = pop.weight + self.items[index].weight
-                        print("EN2 weight:", self.items[index].weight)
                         index = index + 1
+
+            # Add fourth connector type to initial solution in population with correct placement and rotation
             index = self.n1_problem + self.n2_problem + self.n3_problem
-            for i in self.connector_parts:  # [self.connector_part1, self.connector_part2, self.connector_part3, self.connector_part4]:
-                print(i)
+            for i in self.connector_parts:
                 if i.c_type == self.type4:
-                    if i.shape == "square" or "rectangle":
+                    if i.shape == "square" or i.shape == "rectangle":
                         j = i.rectangle_connector
                     elif i.shape == "circle":
                         j = i.circular_connector
                     for k in range(len(j)):
                         shape = self.items[index].shape
-                        print("part4 index:", index)
                         x, y = j[k].cog[0], j[k].cog[1]
-                        print("conn_part4:", shape, x, y)
                         rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
                         print(rotation)
                         pop.placed_items[index] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
                         pop.value = pop.value + self.items[index].value
-                        print("EN4 value:", self.items[index].value)
                         pop.weight = pop.weight + self.items[index].weight
-                        print("EN4 weight:", self.items[index].weight)
                         index = index + 1
-
-                #if i == self.connector_part1:
-                #    print(i.shape)
-                #    if i.shape == "square":
-                #        j = i.square_connector
-                #    elif i.shape == "circle":
-                #        j = i.circular_connector
-                #    elif i.shape == "rectangle":
-                #        j = i.rectangle_connector
-                #    else:
-                #        break
-                #    print(j)
-#
-#                    # For all connectors in part1 the shape, cog, and rotation is determined and assigned to solution
-#                    for k in range(len(j)):
-#                        shape = self.items[k].shape
-#                        print("part1 index:", k)
-#                        x, y = j[k].cog[0], j[k].cog[1]
-#                       print("conn_part1:", shape, x, y)
-#                        rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi*180
-#                        print(rotation)
-#                        pop.placed_items[k] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
-#                        pop.value = pop.value + self.items[k].value
-#                        print("MIL20 value:", self.items[k].value)
-#                        pop.weight = pop.weight + self.items[k].weight
-#                        print("MIL20 weight:", self.items[k].weight)
-#
-#                elif i == self.connector_part2:
-#                    if i.shape == "square":
-#                        j = i.square_connector
-#                    elif i.shape == "circle":
-#                        j = i.circular_connector
-#                    elif i.shape == "rectangle":
-#                        j = i.rectangle_connector
-#                    else:
-#                        break
-
-#                   # For all connectors in part2 the shape, cog, and rotation is determined and assigned to solution
-#                   for k in range(len(j)):
-#                       print(self.items[self.n1_problem + k].shape)
-#                       print("part2 index:", self.n1_problem + k)
-#                        shape = self.items[self.n1_problem + k].shape
-#                        x, y = j[k].cog[0], j[k].cog[1]
-#                        print("conn_part2:", shape, x, y)
-#                        rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi*180
-#                        print(rotation)
-#                        pop.placed_items[self.n1_problem + k] = PlacedShape(shape=shape, position=(x, y),
-#                                                                            rotation=rotation)
-#                        pop.value = pop.value + self.items[self.n1_problem + k].value
-#                        pop.weight = pop.weight + self.items[self.n1_problem + k].weight
-
- #               elif i == self.connector_part3:
-#                    if i.shape == "square":
-#                        j = i.square_connector
-#                    elif i.shape == "circle":
-#                        j = i.circular_connector
-#                    elif i.shape == "rectangle":
-#                        j = i.rectangle_connector
-#                    else:
-#                        break
-
-                    ## For all connectors in part3 the shape, cog, and rotation is determined and assigned to solution
-                    #for k in range(len(j)):
-                    #    shape = self.items[self.n1_problem + self.n2_problem + k].shape
-#                        print("part3 index:", self.n1_problem + self.n2_problem + k)
-#                        x, y = j[k].cog[0], j[k].cog[1]
-#                        print("conn_part3:", shape, x, y)
-#                        rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
-#                        print(rotation)
-#                        pop.placed_items[self.n1_problem + self.n2_problem + k] = PlacedShape(shape=shape,
-#                                                                                              position=(x, y),
-#                                                                                              rotation=rotation)
-#                        pop.value = pop.value + self.items[self.n1_problem + self.n2_problem + k].value
-#                        print("EN2 value:", self.items[self.n1_problem + self.n2_problem + k].value)
-#                        pop.weight = pop.weight + self.items[self.n1_problem + self.n2_problem + k].weight
-#                        print("EN2 weight:", self.items[self.n1_problem + self.n2_problem + k].weight)
-
-#                elif i == self.connector_part4:
-#                    if i.shape == "square":
-#                        j = i.square_connector
-#                    elif i.shape == "circle":
-#                        j = i.circular_connector
-#                    elif i.shape == "rectangle":
-#                        j = i.rectangle_connector
-#                    else:
-#                        break
-
-                    # For all connectors in part4 the shape, cog, and rotation is determined and assigned to solution
- #                   for k in range(len(j)):
- #                       shape = self.items[self.n1_problem + self.n2_problem + self.n3_problem + k].shape
- #                       print("part4 index:", self.n1_problem + self.n2_problem + self.n3_problem + k)
- #                       x, y = j[k].cog[0], j[k].cog[1]
- #                       print("conn_part4:", shape, x, y)
- #                       rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
- #                       print(rotation)
- #                       pop.placed_items[self.n1_problem + self.n2_problem + self.n3_problem + k] = \
- #                           PlacedShape(shape=shape, position=(x, y), rotation=rotation)
- #                       pop.value = pop.value + self.items[self.n1_problem + self.n2_problem + self.n3_problem
- #                                                          + k].value
- #                       print("EN4 value:", self.items[self.n1_problem + self.n2_problem + self.n3_problem + k].value)
- #                       pop.weight = pop.weight + self.items[self.n1_problem + self.n2_problem + self.n3_problem
- #                                                            + k].weight
- #                       print("EN4 weight:", self.items[self.n1_problem + self.n2_problem + self.n3_problem + k].weight)
 
             # Empty solutions in population are altered to contain the manual solution
             for i in range(self.population_size):
@@ -420,6 +300,16 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
             print(i)
         print(connector)
         return SubtractedSolid(shape_in=self.bracket.to_manipulate.bracket_box, tool=connector)  # tool=[self.optimized_connectors1.square_connector[0],self.optimized_connectors1.square_connector[1]])
+
+    @Part
+    def optimized_connectors(self):
+        return Sequence(type=Connector,
+                        quantify=self.optimized[0]+self.optimized[1]+self.optimized[2]+self.optimized[3],
+                        c_type=([self.bracket.to_manipulate.type1]*self.optimized[0] +
+                               [self.bracket.to_manipulate.type2]*self.optimized[1] + #
+                               [self.bracket.to_manipulate.type3]*self.optimized[2] +
+                               [self.bracket.to_manipulate.type4]*self.optimized[3])[child.index],
+                        cog=self.optimized[4][child.index])
 
     @Part
     def initial_solution(self):
