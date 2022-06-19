@@ -57,7 +57,7 @@ class Bracket(GeomBase):
     tol = Input(3, label="Tolerance", validator=Positive(incl_zero=True))
 
     # Height or thickness of the to be designed bracket
-    height = Input(1, validator=Positive(incl_zero=True), label="Thickness of bracket")
+    height = Input(3, validator=Positive(incl_zero=True), label="Thickness of bracket")
 
     # Connector color
     connector_color = Input([98, 179, 196])
@@ -257,6 +257,7 @@ class Bracket(GeomBase):
                               poly_container=self.poly_container,
                               tol=self.tol,
                               label="Connector type 1",
+                              color=self.connector_color,
                               cog=initial_item_placement(self=self, bracket=self.find_child_by_label("Bracket"),
                                                          lastplaced_item=self.connectors[-1] if len(self.connectors) > 0 else "None",
                                                          half_width=connector_class_input_converter(self.type1, self.df)[0][0] / 2,
@@ -384,6 +385,12 @@ class Bracket(GeomBase):
                                             'y', 1,
                                             'z', self.height),
                          overlay=True)
+
+    @action
+    def test(self):
+        print(self.connectors.find_children(fn=lambda conn: conn.label == "MIL/20-A"))
+        print(self.connectors.find_children(fn=lambda conn: conn.__class__ == Cylinder))
+
 
     # @Attribute(in_tree=True)
     # def labels_connectors(self):
