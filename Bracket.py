@@ -148,7 +148,7 @@ class Bracket(GeomBase):
         elif self.bracketshape == "circle":
             bracket_area = np.pi * self.radius**2
         elif self.bracketshape == "file":
-            bracket_area = self.bracket_from_file.children[0].children[0].children[0].area
+            bracket_area = self.bracket_from_file.children[0].children[0].children[0].children[0].area
         else:
             bracket_area = 0
         return bracket_area
@@ -206,9 +206,9 @@ class Bracket(GeomBase):
             container = Circle((0, 0), self.radius - self.tol)
         if self.bracketshape == 'file':
             points = []
-            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
-                points.append((self.bracket_from_file.children[0].children[0].children[0].edges[i].start.x,
-                               self.bracket_from_file.children[0].children[0].children[0].edges[i].start.y))
+            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].children[0].edges)):
+                points.append((self.bracket_from_file.children[0].children[0].children[0].children[0].edges[i].start.x,
+                               self.bracket_from_file.children[0].children[0].children[0].children[0].edges[i].start.y))
             container = Polygon(points)
         return container
 
@@ -237,9 +237,9 @@ class Bracket(GeomBase):
             container = Circle((self.radius, self.radius), self.radius - self.tol)
         if self.bracketshape == 'file':
             points = []
-            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
-                points.append((self.bracket_from_file.children[0].children[0].children[0].edges[i].start.x,
-                               self.bracket_from_file.children[0].children[0].children[0].edges[i].start.y))
+            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].children[0].edges)):
+                points.append((self.bracket_from_file.children[0].children[0].children[0].children[0].edges[i].start.x,
+                               self.bracket_from_file.children[0].children[0].children[0].children[0].edges[i].start.y))
             container = Polygon(points)
         return container
 
