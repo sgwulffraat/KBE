@@ -18,19 +18,19 @@ sys.path.append('source')
 
 
 class Bracket(GeomBase):
-    # Shape input: rectangle, circle or file
+    # Shape input: rectangle, circle or file.
     shapeoptions = ["rectangle", "circle", "file"]
 
-    # Input block bracket generator
+    # Input block bracket generator.
     bracketshape = Input("rectangle", label="Choose bracket shape:",
                          widget=Dropdown(shapeoptions, labels=["Rectangular", "Circular",
                                                                "Create from file"]))
     filename = Input(__file__, widget=FilePicker)
 
-    # Height or thickness of the to be designed bracket
+    # Height or thickness of the to be designed bracket.
     height = Input(3, validator=Positive(incl_zero=True), label="Thickness of bracket")
 
-    # Specify tolerance between connectors
+    # Specify tolerance between connectors.
     tol = Input(3, label="Tolerance", validator=Positive(incl_zero=True))
 
     # Connector input: various abbreviated connector types.
@@ -39,7 +39,7 @@ class Bracket(GeomBase):
                                                     'Cavity specific area')
     connectorlabels = connectorlabels + ["No connector added yet"]
 
-    # Widget section connector type selection
+    # Widget section connector type selection.
     type1 = Input("MIL/20-A", label="Type Connector (to be added)",
                   widget=Dropdown(connectorlabels))
     n1 = Input(1, label="Number of this type (to be added)", validator=Positive(incl_zero=True))
@@ -73,6 +73,7 @@ class Bracket(GeomBase):
     generate_initial_placement = Input(False, widget=Dropdown([True, False],
                                                               labels=['True', 'False']))
 
+    # Only generate radius when bracketshape == circle.
     @Input
     def radius(self):
         if self.bracketshape == "circle":
@@ -81,6 +82,7 @@ class Bracket(GeomBase):
             radius = None
         return radius
 
+    # Only generate length and width when bracketshape == rectangle.
     @Input
     def width(self):
         if self.bracketshape == "rectangle":
@@ -169,11 +171,8 @@ class Bracket(GeomBase):
 
     @Attribute
     def pts_container(self):
-        """Edge points of bracket used to generate shapely polygon of bracket for boundary
-        conditions check"""
         if self.bracketshape == "rectangle":
-            pts_container = [(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0,
-                                                                                      self.length)]
+            pts_container = [(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)]
         if self.bracketshape == "circle":
             pts_container = [self.radius]
         if self.bracketshape == 'file':

@@ -14,8 +14,6 @@ from Manipulation2 import ManipulateAnything
 from connector import Connector
 from warnings_and_functions import show
 import numpy as np
-from connector_input_converter import mesh_connector_converter
-from MeshGenerator import MeshGenerator
 import sys
 sys.path.append('source')
 
@@ -24,12 +22,13 @@ class InitialSolution(GeomBase):
     # Load shapely Polygon as it will not work with parapy Polygon
     from shapely.geometry import Polygon
 
-    # Specify parameters for the initial solution
+    # Specify inputs for the initial solution
     population_size = Input(100)
-    item_specialization_iter_proportion = Input(0.5)
+    initial_solution_generations = Input(500)
     manual_initial_solution = Input(False)
     container = Input(Container(np.inf, Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])))
     items = Input(Item(Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]), 1, 0))
+
     type1 = Input("MIL/20-A")
     type2 = Input("MIL/24-A")
     type3 = Input("EN-2")
@@ -40,9 +39,9 @@ class InitialSolution(GeomBase):
     n3_problem = Input(0)
     n4_problem = Input(0)
     connector_parts = Input([])
-    initial_solution_generations = Input(500)
 
-    # Create problem to solve so solution is a solution to the total problem
+
+    # Create problem to solve so solution is a solution to the correct overall problem
     @Attribute
     def problem(self):
         problems, problem_names, manual_solutions = create_knapsack_packing_problem(self.container, self.items)
@@ -61,9 +60,8 @@ class InitialSolution(GeomBase):
             else:
                 population = [Solution(problem)]*self.population_size
 
+        # Generate an empty solution append
         pop = Solution(problem)
-        print(self.connector_parts)
-        print(self.items[0])
 
         # If True, manual solution is generated based on placement of connectors
         if self.manual_initial_solution:
@@ -81,7 +79,6 @@ class InitialSolution(GeomBase):
                         shape = self.items[index].shape
                         x, y = j[k].cog[0], j[k].cog[1]
                         rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
-                        print(rotation)
                         pop.placed_items[index] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
                         pop.value = pop.value + self.items[index].value
                         pop.weight = pop.weight + self.items[index].weight
@@ -99,7 +96,6 @@ class InitialSolution(GeomBase):
                         shape = self.items[index].shape
                         x, y = j[k].cog[0], j[k].cog[1]
                         rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
-                        print(rotation)
                         pop.placed_items[index] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
                         pop.value = pop.value + self.items[index].value
                         pop.weight = pop.weight + self.items[index].weight
@@ -117,7 +113,6 @@ class InitialSolution(GeomBase):
                         shape = self.items[index].shape
                         x, y = j[k].cog[0], j[k].cog[1]
                         rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
-                        print(rotation)
                         pop.placed_items[index] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
                         pop.value = pop.value + self.items[index].value
                         pop.weight = pop.weight + self.items[index].weight
@@ -135,13 +130,12 @@ class InitialSolution(GeomBase):
                         shape = self.items[index].shape
                         x, y = j[k].cog[0], j[k].cog[1]
                         rotation = vector_angle(j[k].orientation[0], Vector(1, 0, 0), False) / math.pi * 180
-                        print(rotation)
                         pop.placed_items[index] = PlacedShape(shape=shape, position=(x, y), rotation=rotation)
                         pop.value = pop.value + self.items[index].value
                         pop.weight = pop.weight + self.items[index].weight
                         index = index + 1
 
-            # Empty solutions in population are altered to contain the manual solution
+            # Alter empty solutions in population to contain the generated manual solution for full population size.
             for i in range(self.population_size):
                 population[i] = pop
 
@@ -149,33 +143,42 @@ class InitialSolution(GeomBase):
 
 
 class Optimization(GeomBase):
-    """By choosing optimization options the optimization problem is defined. When set to "Inputs",
-    the user is working on finalizing input. When set to "KnapsackPacking", the input provided by the
-    user is the complete set of connectors that should be placed on a given bracket. """
+
+    # Specify inputs for optimization, optimization only starts when it is set to KnapsackPacking.
     optimization_options = ["Inputs", "KnapsackPacking"]
     optimization = Input("Inputs",
                          label="optimization_setting",
                          widget=Dropdown(optimization_options, labels=["Working on Inputs", "Optimize!"]))
-
     solution_directory = ""
     number_of_different_solutions = Input(1)
+
+    # Higher generations results in better solutions, but longer solving time.
     generations = Input(1)
     connector_height = Input(2)
+
+    # Set to True when the user wants to define an initial solution by dragging connectors.
     manual_initial_solution = Input(True, widget=Dropdown([True, False], labels=['True', 'False']))
+
+    # Rotation step used in algorithm in [deg]. Larger angles result in more logical solution, but limits creativity.
     rotation_step = Input(30)
 
+    # Button to start optimization.
     @action(label="click_to_optimize",button_label="OPTIMIZE")
     def optimize(self):
         self.optimization = "KnapsackPacking"
 
+    # Button to show optimized results.
     @action(button_label="SHOW OPTIMIZED SOLUTION")
     def show_optimization(self):
         for i in self.optimized_connectors:
             show(i)
         show(self.optimized_bracket)
 
+    # Optimization loop itself.
     @Attribute
     def optimizing_results(self):
+
+        # Opens Excel sheet to write placement solutions to.
         workbook = xlsxwriter.Workbook('Optimized_bracket.xlsx')
         worksheet = workbook.add_worksheet()
         worksheet.write(0, 0, 'Connector Type')
@@ -186,9 +189,11 @@ class Optimization(GeomBase):
         connector2 = workbook.add_worksheet("Connector 2")
         connector3 = workbook.add_worksheet("Connector 3")
         connector4 = workbook.add_worksheet("Connector 4")
-        connector = [Connector()]
 
+        # Only starts optimization when set to KnapsackPacking.  Done using action.
         if self.optimization == "KnapsackPacking":
+
+            # Runs function to solve problem based on given inputs.
             placed_item_index, placed_items = perform_experiments(
                                             self.optimization,
                                             self.solution_directory,
@@ -199,23 +204,28 @@ class Optimization(GeomBase):
                                             gens=self.generations,
                                             initial_solution=self.initial_solution.initial_solution,
                                             rotation_step=self.rotation_step)
-            placed_items_faces = []
+
             cog = []
             rotation = []
             number_n1 = number_n2 = number_n3 = number_n4 = \
                 area_connectors1 = area_connectors2 = area_connectors3 = area_connectors4 = 0
-            print("placed_item_index:", placed_item_index)
             item_index = list(placed_item_index.keys())
+
+            # Sorting the order of placed items in the solution to simplify loop.
             item_index.sort()
 
             for i in item_index:
+
+                # Determine all edge coordinates of placed item i.
                 placed_item_coor = []
                 for j in range(len(placed_items[i]["x_coor"])):
                     placed_coor = Point(placed_items[i]["x_coor"][j], placed_items[i]["y_coor"][j], 0)
                     placed_item_coor.append(placed_coor)
-                placed_items_faces.append(Face(Polygon(placed_item_coor), color="red"))
+
 
                 if i in range(self.bracket.to_manipulate.n1_problem):
+
+                    # Determine amount of placed connectors of type 1 and used area and write to Excel sheet.
                     number_n1 = number_n1 + 1
                     if number_n1 == 1:
                         row = 0
@@ -224,13 +234,19 @@ class Optimization(GeomBase):
                     worksheet.write(1, 0, self.bracket.to_manipulate.type1)
                     worksheet.write(1, 1, number_n1)
                     worksheet.write(1, 2, area_connectors1)
+
+                    # Writes coordinates of placed item i to Excel sheet of connector type 1.
                     connector1.write(row, 0, str(placed_item_coor))
                     row = row + 1
+
+                    # Determine the rotation and cog of placed item i.
                     rotation.append(placed_items[i]["rotation"])
                     cog.append([placed_items[i]["centroid"].x, placed_items[i]["centroid"].y])
 
                 elif i in range(self.bracket.to_manipulate.n1_problem,
                                 self.bracket.to_manipulate.n1_problem+self.bracket.to_manipulate.n2_problem):
+
+                    # Determine amount of placed connectors of type 2 and used area and write to Excel sheet.
                     number_n2 = number_n2 + 1
                     if number_n2 == 1:
                         row = 0
@@ -239,14 +255,20 @@ class Optimization(GeomBase):
                     worksheet.write(2, 0, self.bracket.to_manipulate.type2)
                     worksheet.write(2, 1, number_n2)
                     worksheet.write(2, 2, area_connectors2)
+
+                    # Writes coordinates of placed item i to Excel sheet of connector type 2.
                     connector2.write(row, 0, str(placed_item_coor))
                     row = row + 1
+
+                    # Determine the rotation and cog of placed item i.
                     rotation.append(placed_items[i]["rotation"])
                     cog.append([placed_items[i]["centroid"].x, placed_items[i]["centroid"].y])
 
                 elif i in range(self.bracket.to_manipulate.n1_problem+self.bracket.to_manipulate.n2_problem,
                                 self.bracket.to_manipulate.n1_problem + self.bracket.to_manipulate.n2_problem +
                                 self.bracket.to_manipulate.n3_problem):
+
+                    # Determine amount of placed connectors of type 3 and used area and write to Excel sheet.
                     number_n3 = number_n3 + 1
                     if number_n3 == 1:
                         row = 0
@@ -255,8 +277,12 @@ class Optimization(GeomBase):
                     worksheet.write(3, 0, self.bracket.to_manipulate.type3)
                     worksheet.write(3, 1, number_n3)
                     worksheet.write(3, 2, area_connectors3)
+
+                    # Writes coordinates of placed item i to Excel sheet of connector type 3.
                     connector3.write(row, 0, str(placed_item_coor))
                     row = row + 1
+
+                    # Determine the rotation and cog of placed item i.
                     rotation.append(placed_items[i]["rotation"])
                     cog.append([placed_items[i]["centroid"].x, placed_items[i]["centroid"].y])
 
@@ -264,6 +290,8 @@ class Optimization(GeomBase):
                                 self.bracket.to_manipulate.n3_problem,
                                 self.bracket.to_manipulate.n1_problem + self.bracket.to_manipulate.n2_problem +
                                 self.bracket.to_manipulate.n3_problem + self.bracket.to_manipulate.n4_problem):
+
+                    # Determine amount of placed connectors of type 4 and used area and write to Excel sheet.
                     number_n4 = number_n4 + 1
                     if number_n4 == 1:
                         row = 0
@@ -272,22 +300,25 @@ class Optimization(GeomBase):
                     worksheet.write(4, 0, self.bracket.to_manipulate.type4)
                     worksheet.write(4, 1, number_n4)
                     worksheet.write(4, 2, area_connectors4)
+
+                    # Writes coordinates of placed item i to Excel sheet of connector type 4.
                     connector4.write(row, 0, str(placed_item_coor))
                     row = row + 1
+
+                    # Determine the rotation and cog of placed item i.
                     rotation.append(placed_items[i]["rotation"])
                     cog.append([placed_items[i]["centroid"].x, placed_items[i]["centroid"].y])
 
+            # Total used area of all placed items.
             area_connectors = area_connectors1 + area_connectors2 + area_connectors3 + area_connectors4
-            type1 = f"{number_n1} of {self.bracket.to_manipulate.type1} were placed"
-            type2 = f"{number_n2} of {self.bracket.to_manipulate.type2} were placed"
-            type3 = f"{number_n3} of {self.bracket.to_manipulate.type3} were placed"
-            type4 = f"{number_n4} of {self.bracket.to_manipulate.type4} were placed"
 
+            # Write total number of placed items and the utilized area of the bracket to Excel.
             worksheet.write(5, 0, 'Total:')
             worksheet.write(5, 1, number_n1+number_n2+number_n3+number_n4)
             worksheet.write(6, 0, 'Utilized area:')
             worksheet.write(6, 1, area_connectors/self.bracket.to_manipulate.bracket_area)
 
+            # Generate message to indicate optimization is finished.
             msg = f"""{number_n1} of {self.bracket.to_manipulate.type1} were placed, 
 {number_n2} of {self.bracket.to_manipulate.type2} were placed,
 {number_n3} of {self.bracket.to_manipulate.type3} were placed, 
@@ -297,13 +328,20 @@ Area of connectors: {area_connectors} [mm^2],
 Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 100} %"""
             warnings.warn(msg)
             generate_warning("Optimization complete:", msg)
+
+            # Close Excel sheet.
             workbook.close()
 
             return number_n1, number_n2, number_n3, number_n4, cog, rotation
 
+    # Generates solids and indicates placement of connectors.
     @Attribute(in_tree=True)
     def optimized_connectors(self):
+
+        # Only useful if optimization happens, otherwise returns empty list.
         if self.optimization == "KnapsackPacking":
+
+            # Specify number of placed items and their locations from attribute optimizing_results.
             number_n1 = self.optimizing_results[0]
             number_n2 = self.optimizing_results[1]
             number_n3 = self.optimizing_results[2]
@@ -312,6 +350,7 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
             rotation = self.optimizing_results[5]
             connector = [Connector()]
 
+            # Generate connector solids for all placed items of type 1.
             connector[0] = Connector(c_type=self.bracket.to_manipulate.type1,
                                      df=self.bracket.to_manipulate.df,
                                      n=number_n1,
@@ -321,6 +360,8 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
                                      color='green',
                                      bracket_height=self.bracket.to_manipulate.height,
                                      label=f"Placed {self.bracket.to_manipulate.type1} connectors")
+
+            # Generate connector solids for all placed items of type 2.
             connector.append(Connector(c_type=self.bracket.to_manipulate.type2,
                                        df=self.bracket.to_manipulate.df,
                                        n=number_n2,
@@ -330,6 +371,8 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
                                        color='green',
                                        bracket_height=self.bracket.to_manipulate.height,
                                        label=f"Placed {self.bracket.to_manipulate.type2} connectors"))
+
+            # Generate connector solids for all placed items of type 3.
             connector.append(Connector(c_type=self.bracket.to_manipulate.type3,
                                        df=self.bracket.to_manipulate.df,
                                        n=number_n3,
@@ -339,6 +382,8 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
                                        color='green',
                                        bracket_height=self.bracket.to_manipulate.height,
                                        label=f"Placed {self.bracket.to_manipulate.type3} connectors"))
+
+            # Generate connector solids for all placed items of type 4.
             connector.append(Connector(c_type=self.bracket.to_manipulate.type4,
                                        df=self.bracket.to_manipulate.df,
                                        n=number_n4,
@@ -349,6 +394,7 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
                                        bracket_height=self.bracket.to_manipulate.height,
                                        label=f"Placed {self.bracket.to_manipulate.type4} connectors"))
 
+            # Loop to return only the solids of the placed connectors defined above for simplicity.
             connector1 = []
             for i in connector:
                 if i.shape == "square" or i.shape == "rectangle":
@@ -363,10 +409,14 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
         else:
             return []
 
-
+    # Generates the geometry of the bracket with holes for the connectors.
     @Attribute(in_tree=True)
     def optimized_bracket(self):
+
+        # Only useful if optimization happens, otherwise returns empty list.
         if self.optimization == "KnapsackPacking":
+
+            # Generates solid for bracket irrespective of what the shape the bracket is.
             if self.bracket.to_manipulate.bracketshape == "rectangle":
                 bracket = self.bracket.to_manipulate.bracket_box
             elif self.bracket.to_manipulate.bracketshape == 'circle':
@@ -374,8 +424,8 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
             elif self.bracket.to_manipulate.bracketshape == "file":
                 bracket = self.bracket.to_manipulate.bracket_from_file
 
+            # Generates tools to make holes in the bracket.
             tool = list()
-
             for i in self.optimized_connectors:
                     tool.append(i.solids[0])
                     print(tool)
@@ -385,6 +435,7 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
         else:
             return []
 
+    # Part defining initial solution for optimization based on given inputs (algorithm or manual placement).
     @Part
     def initial_solution(self):
         return InitialSolution(manual_initial_solution=self.manual_initial_solution,
@@ -400,15 +451,17 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
                                type3=self.bracket.to_manipulate.type3,
                                type4=self.bracket.to_manipulate.type4)
 
+    # Part defining bracket and allowing manipulation of connector placement.
     @Part
     def bracket(self):
         return ManipulateAnything(to_manipulate=Bracket(n1=1, n1_problem=2,
                                                         n2=1, n2_problem=2,
                                                         n3=1, n3_problem=2,
                                                         n4=1, n4_problem=2),
-                                  label='initial_bracket',
-                                  pts_container=self.bracket.to_manipulate.pts_container)
+                                  label='initial_bracket')#,
+                                  #pts_container=self.bracket.to_manipulate.pts_container)
 
+    # Part allowing to write step of generated optimized bracket geometry.
     @Part
     def step_writer(self):
         return STEPWriter(trees=self.optimized_bracket)
