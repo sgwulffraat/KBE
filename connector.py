@@ -8,7 +8,6 @@ class Connector(GeomBase):
     c_type = Input()
     df = Input()
     n = Input(1)
-    height = Input(1)
     cog = Input([[0, 0, 0]])
     rotation = Input([0])
     color = Input([83, 120, 128])
@@ -18,6 +17,15 @@ class Connector(GeomBase):
     lastplaced_item = Input()
     tol = Input()
     poly_container = Input()
+
+    @Input
+    def height(self):
+        height = 10
+        if height < 2*self.bracket_height:
+            height = 2*self.bracket_height
+        else:
+            height = height
+        return height
 
     @Attribute
     def dimensions(self):
@@ -98,7 +106,7 @@ class Connector(GeomBase):
                                position=translate(self.position,
                                                    'x', self.cog[child.index][0],
                                                    'y', self.cog[child.index][1],
-                                                   'z', self.bracket_height + self.height/2),
+                                                   'z', 0),
                                color=self.color,
                                transparency=0.5)
 
