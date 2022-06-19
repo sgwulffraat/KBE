@@ -106,7 +106,7 @@ class Connector(GeomBase):
                                position= translate(self.position,
                                                    'x', self.cog[child.index][0],
                                                    'y', self.cog[child.index][1],
-                                                   'z', 0)
+                                                   'z', 0),
                                color=self.color,
                                transparency=0.5)
 
@@ -122,7 +122,7 @@ class Connector(GeomBase):
                                position=rotate(translate(self.position,
                                                          'x', self.cog[child.index][0],
                                                          'y', self.cog[child.index][1],
-                                                         'z', self.height/2)
+                                                         'z', self.height/2),
                                                'z', self.rotation[child.index],
                                                deg=True),
                                color=self.color,
