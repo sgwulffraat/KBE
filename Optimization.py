@@ -12,6 +12,7 @@ from working_testing import create_knapsack_packing_problem
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from Manipulation2 import ManipulateAnything
 from connector import Connector
+from warnings_and_functions import show
 import numpy as np
 import sys
 sys.path.append('source')
@@ -151,7 +152,7 @@ class Optimization(GeomBase):
     user is the complete set of connectors that should be placed on a given bracket. """
     optimization_options = ["Inputs", "KnapsackPacking"]
     optimization = Input("Inputs",
-                         label="Optimization Setting",
+                         label="optimization_setting",
                          widget=Dropdown(optimization_options, labels=["Working on Inputs", "Optimize!"]))
 
     solution_directory = ""
@@ -161,8 +162,17 @@ class Optimization(GeomBase):
     manual_initial_solution = Input(True, widget=Dropdown([True, False], labels=['True', 'False']))
     rotation_step = Input(30)
 
-    @Attribute
-    def optimized(self):
+    @action(label="click_to_optimize",button_label="OPTIMIZE")
+    def optimize(self):
+        self.optimization = "KnapsackPacking"
+
+    @action(button_label="SHOW OPTIMIZED SOLUTION")
+    def show_optimization(self):
+        show(self.optimized_connectors)
+        show(self.optimized_bracket)
+
+    @Attribute(in_tree=True)
+    def optimized_connectors(self):
         workbook = xlsxwriter.Workbook('Optimized_bracket.xlsx')
         worksheet = workbook.add_worksheet()
         worksheet.write(0, 0, 'Connector Type')
@@ -173,6 +183,7 @@ class Optimization(GeomBase):
         connector2 = workbook.add_worksheet("Connector 2")
         connector3 = workbook.add_worksheet("Connector 3")
         connector4 = workbook.add_worksheet("Connector 4")
+        connector = [Connector()]
 
         if self.optimization == "KnapsackPacking":
             placed_item_index, placed_items = perform_experiments(
@@ -284,32 +295,110 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
             warnings.warn(msg)
             generate_warning("Optimization complete:", msg)
             workbook.close()
-            print(cog)
-            return number_n1, number_n2, number_n3, number_n4, cog, rotation, placed_items_faces, \
-                type1, type2, type3, type4
+
+            connector[0] =   Connector(c_type=self.bracket.to_manipulate.type1,
+                                       df=self.bracket.to_manipulate.df,
+                                       n=number_n1,
+                                       cog=cog[0:number_n1],
+                                       rotation=rotation[0:number_n1],
+                                       deg=True,
+                                       color='green',
+                                       bracket_height=self.bracket.to_manipulate.height,
+                                       label=f"Placed {self.bracket.to_manipulate.type1} connectors")
+            connector.append(Connector(c_type=self.bracket.to_manipulate.type2,
+                                       df=self.bracket.to_manipulate.df,
+                                       n=number_n2,
+                                       cog=cog[number_n1:number_n1+number_n2],
+                                       rotation=rotation[number_n1:number_n1+number_n2],
+                                       deg=True,
+                                       color='green',
+                                       bracket_height=self.bracket.to_manipulate.height,
+                                       label=f"Placed {self.bracket.to_manipulate.type2} connectors"))
+            connector.append(Connector(c_type=self.bracket.to_manipulate.type3,
+                                       df=self.bracket.to_manipulate.df,
+                                       n=number_n3,
+                                       cog=cog[number_n1+number_n2:number_n1+number_n2+number_n3],
+                                       rotation=rotation[number_n1+number_n2:number_n1+number_n2+number_n3],
+                                       deg=True,
+                                       color='green',
+                                       bracket_height=self.bracket.to_manipulate.height,
+                                       label=f"Placed {self.bracket.to_manipulate.type3} connectors"))
+            connector.append(Connector(c_type=self.bracket.to_manipulate.type4,
+                                       df=self.bracket.to_manipulate.df,
+                                       n=number_n4,
+                                       cog=cog[number_n1+number_n2+number_n3:number_n1+number_n2+number_n3+number_n4],
+                                       rotation=rotation[number_n1+number_n2+number_n3:number_n1+number_n2+number_n3+number_n4],
+                                       deg=True,
+                                       color='green',
+                                       bracket_height=self.bracket.to_manipulate.height,
+                                       label=f"Placed {self.bracket.to_manipulate.type4} connectors"))
+
+            return connector
+        else:
+            return []
+
 
     @Attribute(in_tree=True)
     def optimized_bracket(self):
-        connector = []
-        for i in self.bracket.to_manipulate.connectors:
-            if i.shape == "square" or "rectangle":
-                for j in i.rectangle_connector:
-                    print(j)
-                    connector.append(j.local_bbox.box)
+        if self.optimization == "KnapsackPacking":
+            if self.bracket.to_manipulate.bracketshape == "rectangle":
+                bracket = self.bracket.to_manipulate.bracket_box
+            elif self.bracket.to_manipulate.bracketshape == 'circle':
+                bracket = self.bracket.to_manipulate.bracket_cylinder
+            elif self.bracket.to_manipulate.bracketshape == "file":
+                bracket = self.bracket.to_manipulate.bracket_from_file
 
-            print(i)
-        print(connector)
-        return SubtractedSolid(shape_in=self.bracket.to_manipulate.bracket_box, tool=connector)  # tool=[self.optimized_connectors1.square_connector[0],self.optimized_connectors1.square_connector[1]])
+            tool = list()
 
-    @Part
-    def optimized_connectors(self):
-        return Sequence(type=Connector,
-                        quantify=self.optimized[0]+self.optimized[1]+self.optimized[2]+self.optimized[3],
-                        c_type=([self.bracket.to_manipulate.type1]*self.optimized[0] +
-                               [self.bracket.to_manipulate.type2]*self.optimized[1] + #
-                               [self.bracket.to_manipulate.type3]*self.optimized[2] +
-                               [self.bracket.to_manipulate.type4]*self.optimized[3])[child.index],
-                        cog=self.optimized[4][child.index])
+            for i in self.optimized_connectors:
+                if i.c_type == self.bracket.to_manipulate.type1:
+                    if i.shape == "square" or i.shape == "rectangle":
+                        j = i.rectangle_connector
+                    elif i.shape == "circle":
+                        j = i.circular_connector
+                    for k in range(len(j)):
+                        tool.append(j[k].solids[0])
+                        print(tool)
+                if i.c_type == self.bracket.to_manipulate.type2:
+                    if i.shape == "square" or i.shape == "rectangle":
+                        j = i.rectangle_connector
+                    elif i.shape == "circle":
+                        j = i.circular_connector
+                    for k in range(len(j)):
+                        tool.append(j[k].solids[0])
+                        print(tool)
+                if i.c_type == self.bracket.to_manipulate.type3:
+                    if i.shape == "square" or i.shape == "rectangle":
+                        j = i.rectangle_connector
+                    elif i.shape == "circle":
+                        j = i.circular_connector
+                    for k in range(len(j)):
+                        tool.append(j[k].solids[0])
+                        print(tool)
+                if i.c_type == self.bracket.to_manipulate.type4:
+                    if i.shape == "square" or i.shape == "rectangle":
+                        j = i.rectangle_connector
+                    elif i.shape == "circle":
+                        j = i.circular_connector
+                    for k in range(len(j)):
+                        tool.append(j[k].solids[0])
+                        print(tool)
+
+            return SubtractedSolid(shape_in=bracket,tool=tool)
+
+        else:
+            return []
+
+
+    #@Attribute(in_tree=True,label="optimized_bracket")
+    #def optimized_bracket(self):
+    #    if self.bracket.to_manipulate.bracketshape == "rectangle":
+    #        bracket = self.bracket.to_manipulate.bracket_box
+    #    elif self.bracket.to_manipulate.bracketshape == 'circle':
+    #        bracket = self.bracket.to_manipulate.bracket_cylinder
+    #    elif self.bracket.to_manipulate.bracketshape == "file":
+    #        bracket = self.bracket.to_manipulate.bracket_from_file
+    #    return bracket
 
     @Part
     def initial_solution(self):
@@ -344,59 +433,59 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
     #    return ManipulateAnything(to_manipulate=Bracket(n1=self.optimized[0], n2=self.optimized[1],
     #                                                    n3=self.optimized[2], n4=self.optimized[3]))
 
-    @Part
-    def optimized_connectors1(self):
-        return Connector(c_type=self.bracket.to_manipulate.type1,
-                         df=self.bracket.to_manipulate.df,
-                         n=self.optimized[0],
-                         cog=self.optimized[4][0:self.optimized[0]],
-                         rotation=self.optimized[5][0:self.optimized[0]],
-                         deg=True,
-                         color='green',
-                         bracket_height=self.bracket.to_manipulate.height)
+    #@Part
+    #def optimized_connectors1(self):
+    #    return Connector(c_type=self.bracket.to_manipulate.type1,
+    #                     df=self.bracket.to_manipulate.df,
+    #                     n=self.optimized[0],
+    #                     cog=self.optimized[4][0:self.optimized[0]],
+    #                     rotation=self.optimized[5][0:self.optimized[0]],
+    #                     deg=True,
+    #                     color='green',
+    #                     bracket_height=self.bracket.to_manipulate.height)
 
-    @Part
-    def optimized_connectors2(self):
-        return Connector(c_type=self.bracket.to_manipulate.type2,
-                         df=self.bracket.to_manipulate.df,
-                         n=self.optimized[1],
-                         cog=self.optimized[4][self.optimized[0]:self.optimized[0] + self.optimized[1]],
-                         rotation=self.optimized[5][self.optimized[0]:self.optimized[0] + self.optimized[1]],
-                         deg=True,
-                         color='green',
-                         bracket_height=self.bracket.to_manipulate.height)
+    #@Part
+    #def optimized_connectors2(self):
+    #    return Connector(c_type=self.bracket.to_manipulate.type2,
+    #                     df=self.bracket.to_manipulate.df,
+    #                     n=self.optimized[1],
+    #                     cog=self.optimized[4][self.optimized[0]:self.optimized[0] + self.optimized[1]],
+    #                     rotation=self.optimized[5][self.optimized[0]:self.optimized[0] + self.optimized[1]],
+    #                     deg=True,
+    #                     color='green',
+    #                     bracket_height=self.bracket.to_manipulate.height)
 
-    @Part
-    def optimized_connectors3(self):
-        return Connector(c_type=self.bracket.to_manipulate.type3,
-                         df=self.bracket.to_manipulate.df,
-                         n=self.optimized[2],
-                         cog=self.optimized[4][self.optimized[0] + self.optimized[1]:
-                                               self.optimized[0] + self.optimized[1] + self.optimized[2]],
-                         rotation=self.optimized[5][self.optimized[0] + self.optimized[1]:
-                                                    self.optimized[0] + self.optimized[1] + self.optimized[2]],
-                         deg=True,
-                         color='green',
-                         bracket_height=self.bracket.to_manipulate.height)
+    #@Part
+    #def optimized_connectors3(self):
+    #    return Connector(c_type=self.bracket.to_manipulate.type3,
+    #                     df=self.bracket.to_manipulate.df,
+    #                     n=self.optimized[2],
+    #                     cog=self.optimized[4][self.optimized[0] + self.optimized[1]:
+    #                                           self.optimized[0] + self.optimized[1] + self.optimized[2]],
+    #                     rotation=self.optimized[5][self.optimized[0] + self.optimized[1]:
+    #                                                self.optimized[0] + self.optimized[1] + self.optimized[2]],
+    #                     deg=True,
+    #                     color='green',
+    #                     bracket_height=self.bracket.to_manipulate.height)
 
-    @Part
-    def optimized_connectors4(self):
-        return Connector(c_type=self.bracket.to_manipulate.type4,
-                         df=self.bracket.to_manipulate.df,
-                         n=self.optimized[3],
-                         cog=self.optimized[4][self.optimized[0] + self.optimized[1] + self.optimized[2]:
-                                               self.optimized[0] + self.optimized[1] + self.optimized[2] +
-                                               self.optimized[3]],
-                         rotation=self.optimized[5][self.optimized[0] + self.optimized[1] + self.optimized[2]:
-                                                    self.optimized[0] + self.optimized[1] + self.optimized[2] +
-                                                    self.optimized[3]],
-                         deg=True,
-                         color='green',
-                         bracket_height=self.bracket.to_manipulate.height)
+    #@Part
+    #def optimized_connectors4(self):
+    #    return Connector(c_type=self.bracket.to_manipulate.type4,
+    #                     df=self.bracket.to_manipulate.df,
+    #                     n=self.optimized[3],
+    #                     cog=self.optimized[4][self.optimized[0] + self.optimized[1] + self.optimized[2]:
+    #                                           self.optimized[0] + self.optimized[1] + self.optimized[2] +
+    #                                           self.optimized[3]],
+    #                     rotation=self.optimized[5][self.optimized[0] + self.optimized[1] + self.optimized[2]:
+    #                                                self.optimized[0] + self.optimized[1] + self.optimized[2] +
+    #                                                self.optimized[3]],
+    #                     deg=True,
+    #                     color='green',
+    #                     bracket_height=self.bracket.to_manipulate.height)
 
     @Part
     def step_writer(self):
-        return STEPWriter(trees=[self.bracket, self.connectors])
+        return STEPWriter(trees=self.optimized_bracket)
 
 
 if __name__ == "__main__":
