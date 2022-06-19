@@ -119,12 +119,10 @@ class Connector(GeomBase):
                                hidden=False if self.shape == "rectangle" or self.shape == "square" else True,
                                label=self.c_type,
                                quantify=self.n,
-                               position=rotate(translate(self.position,
-                                                         'x', self.cog[child.index][0],
-                                                         'y', self.cog[child.index][1],
-                                                         'z', self.height/2),
-                                               'z', self.rotation[child.index],
-                                               deg=True),
+                               position=translate(self.position,
+                                                  'x', self.cog[child.index][0],
+                                                  'y', self.cog[child.index][1],
+                                                  'z', self.bracket_height + self.height/2),
                                color=self.color,
                                transparency=0.5)
 

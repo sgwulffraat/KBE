@@ -15,7 +15,6 @@ class ManipulateAnything(Base):
     label = Input('right-click the connector(s) to manipulate selected')
     to_manipulate = Input(in_tree=True, label='Design bracket here')
     rotation_increment = Input(45)
-    pts_container = Input()
     slctd_conn = Input('No connector selected yet')
     connector_color = Input([83, 120, 128])
     # Allow pop up
@@ -25,10 +24,21 @@ class ManipulateAnything(Base):
     @Attribute
     def pol_container(self):
         if len(self.to_manipulate.pts_container) > 1:
-            pol_container = Polygon(self.pts_container)
+            pol_container = Polygon(self.to_manipulate.pts_container)
         else:
             pol_container = Point(self.to_manipulate.radius, self.to_manipulate.radius).buffer(self.to_manipulate.radius)
         return pol_container
+
+    @Attribute()
+    def boundary_bounds(self):
+        boundary_bounds = []
+        bound_para_points = []
+        for j in range(len(self.to_manipulate.pts_container)):
+            bound_para_points.append(para_Point(self.to_manipulate.pts_container[j][0],
+                                                self.to_manipulate.pts_container[j][1],
+                                                self.to_manipulate.height))
+        boundary_bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
+        return boundary_bounds
 
     # Parapy GUI boundary polygon or circle
     @Attribute
@@ -125,6 +135,7 @@ class ManipulateAnything(Base):
             self.start_manipulation_one(evt.selected[0], evt.source)
             self.slctd_conn = evt.selected[0]
             show(self.tol_bounds)
+            show(self.boundary_bounds)
 
     # Veto connector placement outside of bracket domain and change color depending on overlap conditions
     def _on_motion(self, evt: MotionEvent):
@@ -133,6 +144,7 @@ class ManipulateAnything(Base):
         pol_connector_no_tol = self._pol_connector_no_tol(current_position)
         if self.pol_container.contains(pol_connector) is False:
             evt.Veto()
+            "Connector not within container. Movement has been vetod"
         if len(self.pol_list) != 0:
             cond = []
             for i in range(0, len(self.pol_list)):
@@ -292,9 +304,11 @@ class ManipulateAnything(Base):
                 obj.position = evt.transformation.apply(obj.position)
                 self.position = evt.current_position
                 hide(self.tol_bounds)
+                hide(self.boundary_bounds)
         else:
             self.slctd_conn.color = self.connector_color
             obj.position = evt.transformation.apply(obj.position)
             self.position = evt.current_position
+            hide(self.tol_bounds)
             hide(self.tol_bounds)
 
