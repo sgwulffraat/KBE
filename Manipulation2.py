@@ -4,7 +4,8 @@ from parapy.core.validate import warnings
 from parapy.geom import Polygon as para_Polygon
 from parapy.geom import Point as para_Point
 from parapy.gui.events import EVT_RIGHT_CLICK_OBJECT
-from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent, Translation, Rotation
+from parapy.gui.manipulation import EndEvent, Gizmo, Manipulation, MotionEvent, Translation, \
+    Rotation
 from shapely.geometry import Polygon, Point
 import numpy as np
 from warnings_and_functions import generate_warning, show, hide
@@ -15,22 +16,23 @@ class ManipulateAnything(Base):
     label = Input('right-click the connector(s) to manipulate selected')
     to_manipulate = Input(in_tree=True, label='Design bracket here')
     rotation_increment = Input(45)
-    slctd_conn = Input('No connector selected yet')
+    slctd_conn = Input('No connector selected yet')             # Selected connector name is stored
     connector_color = Input([83, 120, 128])
-    # Allow pop up
-    popup_gui = Input(True, label="Allow pop-up")
+    popup_gui = Input(True, label="Allow pop-up")               # Allow pop up
 
-    # Shapely polygon of container
     @Attribute
     def pol_container(self):
+        """Shapely polygon of bracket used to check for boundary conditions"""
         if len(self.to_manipulate.pts_container) > 1:
             pol_container = Polygon(self.to_manipulate.pts_container)
         else:
-            pol_container = Point(self.to_manipulate.radius, self.to_manipulate.radius).buffer(self.to_manipulate.radius)
+            pol_container = Point(self.to_manipulate.radius,
+                                  self.to_manipulate.radius).buffer(self.to_manipulate.radius)
         return pol_container
 
     @Attribute()
     def boundary_bounds(self):
+        """Parapy GUI boundary polygon of bracket"""
         boundary_bounds = []
         bound_para_points = []
         for j in range(len(self.to_manipulate.pts_container)):
@@ -40,12 +42,14 @@ class ManipulateAnything(Base):
         boundary_bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
         return boundary_bounds
 
-    # Parapy GUI boundary polygon or circle
     @Attribute
     def tol_bounds(self):
+        """Parapy GUI boundary polygon or circle that indicate the tolerance distances"""
         bounds = []
-        box_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__ == Box)
-        cylinder_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__ == Cylinder)
+        box_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__
+                                                               == Box)
+        cylinder_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__
+                                                                    == Cylinder)
         if type(self.slctd_conn) is not str:
             for cylinder in cylinder_list:
                 if cylinder.id != self.slctd_conn.id:
@@ -65,18 +69,21 @@ class ManipulateAnything(Base):
                     bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
         return bounds
 
-    # List of stationary shapely polygons
     @Attribute
     def pol_list(self):
+        """List of stationary shapely polygons"""
         pol_list = []
-        box_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__ == Box)
-        cylinder_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__ == Cylinder)
+        box_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__
+                                                               == Box)
+        cylinder_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__
+                                                                    == Cylinder)
         if type(self.slctd_conn) is not str:
             for cylinder in cylinder_list:
                 if cylinder.id != self.slctd_conn.id:
                     stationary_cylinder = cylinder
                     polygon = Point((stationary_cylinder.cog[0]),
-                                    (stationary_cylinder.cog[1])).buffer(stationary_cylinder.radius + self.to_manipulate.tol)
+                                    (stationary_cylinder.cog[1])).buffer(stationary_cylinder.radius
+                                                                         + self.to_manipulate.tol)
                     pol_list.append(polygon)
             for box in box_list:
                 if box.id != self.slctd_conn.id:
@@ -85,45 +92,62 @@ class ManipulateAnything(Base):
                     pol_list.append(polygon)
         return pol_list
 
-    # Function to get edge points of any rectangular connector
     def pol_pts(self, stationary_connector):
-        pts = [(stationary_connector.cog[0] + ((stationary_connector.width/2 + self.to_manipulate.tol)
+        """Function to get edge points of any rectangular connector"""
+        pts = [(stationary_connector.cog[0] + ((stationary_connector.width/2
+                                                + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[0])
-                                               - (stationary_connector.length/2 + self.to_manipulate.tol)
+                                               - (stationary_connector.length/2
+                                                  + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[1])),
-                stationary_connector.cog[1] + ((stationary_connector.width/2 + self.to_manipulate.tol)
+                stationary_connector.cog[1] + ((stationary_connector.width/2
+                                                + self.to_manipulate.tol)
                                                * -(stationary_connector.orientation.y[0])
-                                               + (stationary_connector.length/2 + self.to_manipulate.tol)
+                                               + (stationary_connector.length/2
+                                                  + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.y[1]))),
-               (stationary_connector.cog[0] + ((stationary_connector.width/2 + self.to_manipulate.tol)
+               (stationary_connector.cog[0] + ((stationary_connector.width/2
+                                                + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[0])
-                                               + (stationary_connector.length/2 + self.to_manipulate.tol)
+                                               + (stationary_connector.length/2
+                                                  + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[1])),
-                stationary_connector.cog[1] - ((stationary_connector.length/2 + self.to_manipulate.tol)
+                stationary_connector.cog[1] - ((stationary_connector.length/2
+                                                + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.y[1])
-                                               + (stationary_connector.width/2 + self.to_manipulate.tol)
+                                               + (stationary_connector.width/2
+                                                  + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.y[0]))),
-               (stationary_connector.cog[0] - ((stationary_connector.width/2 + self.to_manipulate.tol)
+               (stationary_connector.cog[0] - ((stationary_connector.width/2
+                                                + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[0])
-                                               - (stationary_connector.length/2 + self.to_manipulate.tol)
+                                               - (stationary_connector.length/2
+                                                  + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[1])),
-                stationary_connector.cog[1] - ((stationary_connector.width/2 + self.to_manipulate.tol)
+                stationary_connector.cog[1] - ((stationary_connector.width/2
+                                                + self.to_manipulate.tol)
                                                * -(stationary_connector.orientation.y[0])
-                                               + (stationary_connector.length/2 + self.to_manipulate.tol)
+                                               + (stationary_connector.length/2
+                                                  + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.y[1]))),
-               (stationary_connector.cog[0] - ((stationary_connector.width/2 + self.to_manipulate.tol)
+               (stationary_connector.cog[0] - ((stationary_connector.width/2
+                                                + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[0])
-                                               + (stationary_connector.length/2 + self.to_manipulate.tol)
+                                               + (stationary_connector.length/2
+                                                  + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.x[1])),
-                stationary_connector.cog[1] + ((stationary_connector.width/2 + self.to_manipulate.tol)
+                stationary_connector.cog[1] + ((stationary_connector.width/2
+                                                + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.y[0])
-                                               + (stationary_connector.length/2 + self.to_manipulate.tol)
+                                               + (stationary_connector.length/2
+                                                  + self.to_manipulate.tol)
                                                * (stationary_connector.orientation.y[1])))
                ]
         return pts
 
     @on_event(EVT_RIGHT_CLICK_OBJECT)
     def on_click(self, evt):
+        """Selected object is evaluated and if accepted (object is not the bracket), is stored"""
         if evt.selected[0] == self.to_manipulate.bracket_box \
                 or evt.selected[0] == self.to_manipulate.bracket_cylinder \
                 or evt.selected[0] == self.to_manipulate.bracket_from_file:
@@ -137,14 +161,13 @@ class ManipulateAnything(Base):
             show(self.tol_bounds)
             show(self.boundary_bounds)
 
-    # Veto connector placement outside of bracket domain and change color depending on overlap conditions
     def _on_motion(self, evt: MotionEvent):
+        """Boundary and connector overlap check"""
         current_position = evt.current_position
         pol_connector = self._pol_connector_with_tol(current_position)
         pol_connector_no_tol = self._pol_connector_no_tol(current_position)
         if self.pol_container.contains(pol_connector) is False:
-            evt.Veto()
-            "Connector not within container. Movement has been vetod"
+            evt.Veto()          # Connector not within container. Movement has been vetod
         if len(self.pol_list) != 0:
             cond = []
             for i in range(0, len(self.pol_list)):
@@ -157,50 +180,69 @@ class ManipulateAnything(Base):
         else:
             self.slctd_conn.color = 'green'
 
-    # Function to get shapely polygon of selected connector with tolerances applied (used for container boundary check)
     def _pol_connector_with_tol(self, position):
+        """Function to get shapely polygon of selected connector with tolerances applied
+        (used for container boundary check)"""
         if len(self.slctd_conn.faces) == 3:
-            pol_connector = Point(position.x, position.y).buffer(self.slctd_conn.radius + self.to_manipulate.tol)
+            pol_connector = Point(position.x, position.y).buffer(self.slctd_conn.radius
+                                                                 + self.to_manipulate.tol)
         elif len(self.slctd_conn.faces) == 6:
-            pol_connector = Polygon([(position.x + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+            pol_connector = Polygon([(position.x + ((self.slctd_conn.width/2
+                                                     + self.to_manipulate.tol)
                                                     * (position.orientation.x[0])
-                                                    - (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    - (self.slctd_conn.length/2
+                                                       + self.to_manipulate.tol)
                                                     * (position.orientation.x[1])),
-                                      position.y + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                      position.y + ((self.slctd_conn.width/2
+                                                     + self.to_manipulate.tol)
                                                     * -(position.orientation.y[0])
-                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    + (self.slctd_conn.length/2
+                                                       + self.to_manipulate.tol)
                                                     * (position.orientation.y[1]))),
-                                     (position.x + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                     (position.x + ((self.slctd_conn.width/2
+                                                     + self.to_manipulate.tol)
                                                     * (position.orientation.x[0])
-                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    + (self.slctd_conn.length/2
+                                                       + self.to_manipulate.tol)
                                                     * (position.orientation.x[1])),
-                                      position.y - ((self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                      position.y - ((self.slctd_conn.length/2
+                                                     + self.to_manipulate.tol)
                                                     * (position.orientation.y[1])
-                                                    + (self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                                    + (self.slctd_conn.width/2
+                                                       + self.to_manipulate.tol)
                                                     * (position.orientation.y[0]))),
-                                     (position.x - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                     (position.x - ((self.slctd_conn.width/2
+                                                     + self.to_manipulate.tol)
                                                     * (position.orientation.x[0])
-                                                    - (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    - (self.slctd_conn.length/2
+                                                       + self.to_manipulate.tol)
                                                     * (position.orientation.x[1])),
-                                      position.y - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                      position.y - ((self.slctd_conn.width/2
+                                                     + self.to_manipulate.tol)
                                                     * -(position.orientation.y[0])
-                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    + (self.slctd_conn.length/2
+                                                       + self.to_manipulate.tol)
                                                     * (position.orientation.y[1]))),
-                                     (position.x - ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                     (position.x - ((self.slctd_conn.width/2
+                                                     + self.to_manipulate.tol)
                                                     * (position.orientation.x[0])
-                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    + (self.slctd_conn.length/2
+                                                       + self.to_manipulate.tol)
                                                     * (position.orientation.x[1])),
-                                      position.y + ((self.slctd_conn.width/2 + self.to_manipulate.tol)
+                                      position.y + ((self.slctd_conn.width/2
+                                                     + self.to_manipulate.tol)
                                                     * (position.orientation.y[0])
-                                                    + (self.slctd_conn.length/2 + self.to_manipulate.tol)
+                                                    + (self.slctd_conn.length/2
+                                                       + self.to_manipulate.tol)
                                                     * (position.orientation.y[1])))
                                      ])
         else:
             print("No valid connector found")
         return pol_connector
 
-    # Function to get shapely polygon without tolerances applied (used for overlap with stationary connectors)
     def _pol_connector_no_tol(self, position):
+        """Function to get shapely polygon without tolerances applied (used for overlap with
+         stationary connectors)"""
         if len(self.slctd_conn.faces) == 3:
             pol_connector = Point(position.x, position.y).buffer(self.slctd_conn.radius)
         elif len(self.slctd_conn.faces) == 6:
@@ -273,10 +315,10 @@ class ManipulateAnything(Base):
         return self._start_manipulation(obj, on_submit, self._on_motion, viewer)
 
     def _start_manipulation(self, obj, on_submit, on_motion, viewer):
-        gizmo = Gizmo(size=20, position=obj.position, modes=[Translation(axis=Vector(1, 0, 0)),
-                                                             Translation(axis=Vector(0, 1, 0)),
-                                                             Rotation(increment=self.rotation_increment*np.pi/180,
-                                                                      normal=Vector(0, 0, 1))])
+        gizmo = Gizmo(size=20, position=obj.position,
+                      modes=[Translation(axis=Vector(1, 0, 0)), Translation(axis=Vector(0, 1, 0)),
+                             Rotation(increment=self.rotation_increment*np.pi/180,
+                                      normal=Vector(0, 0, 1))])
         obj = Manipulation(obj=obj,
                            viewer=viewer,
                            on_submit=on_submit,
@@ -286,6 +328,9 @@ class ManipulateAnything(Base):
         obj.start()
 
     def _on_submit(self, evt: EndEvent, obj):
+        """Submit event. It is checked whether no overlap conditions are infringed. If so a warning
+        is displayed and the used is requested to move the connector until no overlap is detected
+        """
         current_position = evt.current_position
         pol_connector = self._pol_connector_no_tol(current_position)
         if len(self.pol_list) != 0:
@@ -311,4 +356,3 @@ class ManipulateAnything(Base):
             self.position = evt.current_position
             hide(self.tol_bounds)
             hide(self.tol_bounds)
-

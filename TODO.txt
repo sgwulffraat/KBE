@@ -7,19 +7,13 @@ General
 - pep8 fix (shorter lines, commenting, etc)
 - UML & Activity diagram
 
-Optimization
-- compatible with new format
-
 Bracket
-- initial solution compatible
-- optimize_items
-- max x max y bracket from file
+- reset rotations
 
 Manipulable:
 - Labels
 - Optimized solution manipulable
 - Testing from file
-- Action decorator buttons
 
 Structural
-- simplified package open source
+- detailed holes
