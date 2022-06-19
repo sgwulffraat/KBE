@@ -38,16 +38,19 @@ class Bracket(GeomBase):
     # Widget section connector type selection
     type1 = Input("MIL/20-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
-    n1 = Input(1, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n1 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
     n1_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
+
     type2 = Input("MIL/24-A", label="Type Connector",
                   widget=Dropdown(connectorlabels))
     n2 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
     n2_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
+
     type3 = Input("EN-2", label="Type Connector",
                   widget=Dropdown(connectorlabels))
     n3 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
     n3_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
+
     type4 = Input("EN-4", label="Type Connector",
                   widget=Dropdown(connectorlabels))
     n4 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
@@ -70,7 +73,7 @@ class Bracket(GeomBase):
 
     # How many different initial placements should be generated and how
     population_size = Input(1)
-    item_specialization_iter_proportion = Input(0.5)
+    initial_solution_generations = Input(100000)
     container = Input(Container(np.inf, Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])))
     items = Input(Item(Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]), 1, 0))
 
@@ -118,7 +121,7 @@ class Bracket(GeomBase):
         for i, (problem, problem_name, solution) in enumerate(zip(self.initial_placement_problem[0],
                                                                   self.initial_placement_problem[1],
                                                                   self.initial_placement_problem[2])):
-            population = generate_population(problem, self.population_size, self.item_specialization_iter_proportion)
+            population = generate_population(problem, self.population_size, initial_solution_generations=self.initial_solution_generations)
 
         for i in range(self.population_size):
             max_value = 0
@@ -135,7 +138,7 @@ class Bracket(GeomBase):
                 print(x, y)
                 cog[i] = [x, y, 0]
             else:
-                cog[i] = [0, 0, 0]
+                cog[i] = [self.optimize_container.centroid.x, self.optimize_container.centroid.y, 0]
 
         print(cog)
 
@@ -155,6 +158,14 @@ class Bracket(GeomBase):
 
     @Attribute
     def initial_placement_items(self):
+        if self.n1_problem < self.n1:
+            self.n1_problem = self.n1
+        if self.n2_problem < self.n2:
+            self.n2_problem = self.n2
+        if self.n3_problem < self.n3:
+            self.n3_problem = self.n3
+        if self.n4_problem < self.n4:
+            self.n4_problem = self.n4
         items1, area1 = connector_input_converter(self.type1, self.n1, self.tol, self.df, self.df2)
         items2, area2 = connector_input_converter(self.type2, self.n2, self.tol, self.df, self.df2)
         items3, area3 = connector_input_converter(self.type3, self.n3, self.tol, self.df, self.df2)
@@ -188,9 +199,12 @@ class Bracket(GeomBase):
     @Attribute
     def initial_placement_container(self):
         if self.bracketshape == "rectangle":
-            container = Polygon([(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)])
+            container = Polygon([(0.0 + 0.5 * self.tol, 0 + 0.5 * self.tol),
+                                 (self.width - 0.5 * self.tol, 0.0 + 0.5 * self. tol),
+                                 (self.width - 0.5 * self.tol, self.length - 0.5 * self.tol),
+                                 (0.0 + 0.5 * self.tol, self.length - 0.5 * self.tol)])
         if self.bracketshape == "circle":
-            container = Circle((0, 0), self.radius)
+            container = Circle((0, 0), self.radius - self.tol)
         if self.bracketshape == 'file':
             points = []
             for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
@@ -217,9 +231,12 @@ class Bracket(GeomBase):
     @Attribute
     def optimize_container(self):
         if self.bracketshape == "rectangle":
-            container = Polygon([(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)])
+            container = Polygon([(0.0 + 0.5 * self.tol, 0 + 0.5 * self.tol),
+                                 (self.width - 0.5 * self.tol, 0.0 + 0.5 * self. tol),
+                                 (self.width - 0.5 * self.tol, self.length - 0.5 * self.tol),
+                                 (0.0 + 0.5 * self.tol, self.length - 0.5 * self.tol)])
         if self.bracketshape == "circle":
-            container = Circle((0, 0), self.radius)
+            container = Circle((0, 0), self.radius - self.tol)
         if self.bracketshape == 'file':
             points = []
             for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
