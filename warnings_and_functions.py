@@ -6,7 +6,6 @@ from parapy.geom import Box, Cylinder, translate
 from shapely.geometry import Polygon
 
 def generate_warning(warning_header, msg):
-
     from tkinter import Tk, messagebox
 
     # initialization
@@ -45,12 +44,14 @@ def redraw(objects: typing.Union[Base, typing.Iterable[Base]], show: bool,
         viewer.hide(objects, update=update)
 
 def initial_item_placement(self, bracket, lastplaced_item, half_width, half_length, step, n, tol):
+    """Function that uses the bracket, last placed item, connector-to-be-placed dimensions and
+    number of connectors-to-be-placed, tolerance between connectors and x step size to generate
+    an automatic initial placement of the newly added connectors. The start position of the
+    iteration depends on the last placed item before it. This functions first checks all positive
+    x-coordinates at y-coordinate of previous placed item. If no position is found at that range,
+     y is changed with the half-length of the connector + the tolerance and the iteration continues
+     again with looping the x-coordinates"""
     position_list = []
-    x = []
-    y = []
-    for i in self.pts_container:
-        x.append(i[0])
-        y.append(i[1])
     if bracket.__class__ == Cylinder:
         bracket_max_x = 2 * bracket.radius
         bracket_max_y = 2 * bracket.radius
@@ -58,6 +59,11 @@ def initial_item_placement(self, bracket, lastplaced_item, half_width, half_leng
         bracket_max_x = bracket.width
         bracket_max_y = bracket.length
     else:
+        x = []
+        y = []
+        for i in self.pts_container:
+            x.append(i[0])
+            y.append(i[1])
         bracket_max_x = max(x)
         bracket_max_y = max(y)
     for child in range(0, n):
@@ -107,7 +113,6 @@ def initial_item_placement(self, bracket, lastplaced_item, half_width, half_leng
                     else:
                         position = [half_width + tol, start_position_y + previous_half_length + tol + j * half_length]
                 while position[0] < bracket_max_x:
-                    position[0] = position[0] + step
                     pol_connector = Polygon([(position[0] + (half_width + tol),
                                               position[1] + (half_length + tol)),
                                              (position[0] + (half_width + tol),
@@ -122,6 +127,8 @@ def initial_item_placement(self, bracket, lastplaced_item, half_width, half_leng
                         iteration = False
                         solution = True
                         break
+                    else:
+                        position[0] = position[0] + step
         else:
             if solution is False:
                 position_list.append([bracket.cog[0], bracket.cog[1]])

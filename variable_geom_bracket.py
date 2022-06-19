@@ -26,18 +26,6 @@ class Variable_geom_bracket(GeomBase):
     def extruded_sld(self):
         return ExtrudedSolid(island=self.wire, distance=1, direction=(0, 0, 1))
 
-    # @Part
-    # def face2(self):
-    #     return Face(Polygon([Point(0, 0, 0), Point(-15, 15, 0), Point(-15, 45, 0),
-    #            Point(30, 65, 0), Point(120, 65, 0), Point(140, 30, 0),
-    #            Point(140, 25, 0), Point(50, 25, 0), Point(45, 0, 0)]))
-
-
-
-    # @Part
-    # def bracket(self):
-    #     return Face()
-
     @Part
     def step(self):
         return STEPWriter(trees=[self])
