@@ -3,7 +3,7 @@ from parapy.gui.display import get_top_window
 from parapy.core import Input, Attribute, Part, warnings, MutableSequence, List, action
 from parapy.core.widgets import Dropdown, FilePicker
 from parapy.core.validate import Positive
-from parapy.exchange import STEPReader, STEPWriter
+from parapy.exchange import STEPReader
 from connector import Connector
 from parapy.gui.actions import ViewerSelection
 from connector_input_converter import connector_input_converter, read_connector_excel, connector_class_input_converter
@@ -64,6 +64,9 @@ class Bracket(GeomBase):
     # Connector color
     connector_color = Input([98, 179, 196])
 
+    # Bracket color
+    bracket_color = Input([199, 192, 185])
+
     # Allow pop-up
     popup_gui = Input(True, label="Allow pop-up")
 
@@ -100,13 +103,38 @@ class Bracket(GeomBase):
             length = None
         return length
 
-    # @Attribute
-    # def bracket_shower(self):
-    #     if self.bracketshape == "rectangle":
-    #         show(self.bracket_box)
-    #     if self.bracketshape == "circle":
-    #         hide(self.bracket_box)
-    #         show(self.bracket_cylinder)
+    @Attribute
+    def valid_file(self):
+        valid_file = False
+        if self.bracketshape == 'file':
+            if self.filename[-3:] == 'stp':
+                valid_file = True
+            else:
+                msg = "Warning: add a valid STEP file to proceed"
+                warnings.warn(msg)
+                if self.popup_gui:
+                    generate_warning("Warning: Invalid file", msg)
+        return valid_file
+
+    @action(label="Click to show bracket", button_label="SHOW")
+    def show_bracket(self):
+        if self.bracketshape == 'file':
+            hide(self.bracket_box)
+            hide(self.bracket_cylinder)
+            if self.valid_file is True:
+                self.bracket_from_file.children[0].children[0].children[0].children[0].color = self.bracket_color
+                show(self.bracket_from_file.children[0].children[0].children[0].children[0])
+
+        elif self.bracketshape == 'rectangle':
+            if self.valid_file is True:
+                hide(self.bracket_from_file.children[0].children[0].children[0].children[0])
+            hide(self.bracket_cylinder)
+            show(self.bracket_box)
+        else:
+            hide(self.bracket_box)
+            if self.valid_file is True:
+                hide(self.bracket_from_file.children[0].children[0].children[0].children[0])
+            show(self.bracket_cylinder)
 
     @Attribute
     def initial_placement_problem(self):
@@ -218,12 +246,11 @@ class Bracket(GeomBase):
             pts_container = [(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)]
         if self.bracketshape == "circle":
             pts_container = [self.radius]
-            print(len(pts_container))
         if self.bracketshape == 'file':
             points = []
-            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].edges)):
-                points.append((self.bracket_from_file.children[0].children[0].children[0].edges[i].start.x,
-                               self.bracket_from_file.children[0].children[0].children[0].edges[i].start.y))
+            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[1].children)):
+                points.append((self.bracket_from_file.children[0].children[0].children[1].children[i].start.x,
+                               self.bracket_from_file.children[0].children[0].children[1].children[i].start.y))
             pts_container = points
         return pts_container
 
@@ -301,7 +328,7 @@ class Bracket(GeomBase):
             self.n4_problem = self.conn_list[0][2]
 
     # Button to append a connector of type 1
-    @action(button_label='ADD')
+    @action(label='Click to add new connector', button_label='ADD')
     def append_connector(self):
         present = False
         if self.type1 in self.type_list:
@@ -349,7 +376,7 @@ class Bracket(GeomBase):
                 show(connector.circular_connector[i])
 
     # Button to remove last addition
-    @action(button_label='DELETE LAST')
+    @action(label='Click to remove last addition',button_label='DELETE LAST')
     def pop_last(self):
         pop_list = self.connectors[-1].find_children(
             fn=lambda conn: conn.__class__ == Box or conn.__class__ == Cylinder)
@@ -366,7 +393,7 @@ class Bracket(GeomBase):
         self.update_type_list()
         self.connectors.pop()
 
-    @action(button_label='DELETE SELECTION')
+    @action(label="Click to remove selection", button_label='DELETE SELECTION')
     def remove_connectors(self):
         # Enter selection mode for the user to select connectors in the viewer
         main_window = get_top_window()
@@ -490,11 +517,7 @@ class Bracket(GeomBase):
                           color=[199, 192, 185])
 
     @Part
-    def step(self):
-        return STEPWriter(trees=self.bracket_test)
-
-    @Part
-    def labels(self):
+    def bracket_label(self):
         return TextLabel(text="Bracket",
                          position=translate(rotate90(self.bracket_box.position, rotation_axis='z'),
                                             'x', 1,
@@ -516,6 +539,5 @@ if __name__ == '__main__':
     from parapy.gui import display
     bracket_obj = Bracket()
     obj = ManipulateAnything(to_manipulate=bracket_obj,
-                             pts_container=bracket_obj.pts_container,
                              connector_color=bracket_obj.connector_color)
     display([obj])

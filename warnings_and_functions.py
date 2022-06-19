@@ -46,6 +46,11 @@ def redraw(objects: typing.Union[Base, typing.Iterable[Base]], show: bool,
 
 def initial_item_placement(self, bracket, lastplaced_item, half_width, half_length, step, n, tol):
     position_list = []
+    x = []
+    y = []
+    for i in self.pts_container:
+        x.append(i[0])
+        y.append(i[1])
     if bracket.__class__ == Cylinder:
         bracket_max_x = 2 * bracket.radius
         bracket_max_y = 2 * bracket.radius
@@ -53,8 +58,8 @@ def initial_item_placement(self, bracket, lastplaced_item, half_width, half_leng
         bracket_max_x = bracket.width
         bracket_max_y = bracket.length
     else:
-        bracket_max_x = 2 * bracket.radius
-        bracket_max_y = 2 * bracket.radius
+        bracket_max_x = max(x)
+        bracket_max_y = max(y)
     for child in range(0, n):
         iteration = True
         solution = False
@@ -76,10 +81,15 @@ def initial_item_placement(self, bracket, lastplaced_item, half_width, half_leng
                 previous_half_width = last_items[-1].width / 2
                 previous_half_length = last_items[-1].length / 2
         else:
-            start_position_x = half_width + tol
-            start_position_y = half_length + tol
             previous_half_length = 0
             previous_half_width = 0
+            if bracket.__class__ != Box and bracket.__class__ != Cylinder:
+                start_position_x = half_width + tol - min(x)
+                start_position_y = half_length + tol - min(y)
+            else:
+                start_position_x = half_width + tol
+                start_position_y = half_length + tol
+
         for j in range(0, round((bracket_max_y
                                  - (start_position_y + previous_half_length + tol)) / half_length) + 1):
             if iteration is True:
