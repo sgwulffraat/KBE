@@ -78,3 +78,28 @@ def connector_class_input_converter(type, df):
         size = []
         shape = 'Undefined item'
     return size, shape
+
+def mesh_connector_converter(type, n, df):
+    items = []
+    if type[0:3] == "MIL":
+        if type[4:6] == '20':
+            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][0]]
+            item = Polygon([(0.0, 0.0), (d, 0.0), (d, d), (0, d)])
+        if type[4:6] == '24':
+            d = df["Dimension"][df.index[df["Shell size"] == type[-1]][1]]
+            item = Point(0, 0).buffer(d/2)
+    elif type[0:2] == "EN":
+        if type[-1] == '2':
+            l = 55.6
+            w = 15.2
+            item = Polygon([(0.0, 0.0), (l, 0.0), (l, w), (0, w)])
+        if type[-1] == '4':
+            l = 86.1
+            w = 15.2
+            item = Polygon([(0.0, 0.0), (l, 0.0), (l, w), (0, w)])
+    else:
+        item = "Undefined item"
+        size = []
+    for i in range(0,n):
+        items.append(item)
+    return items

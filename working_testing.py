@@ -234,6 +234,7 @@ def perform_experiments(problem_type, output_dir, load_experiments, container, i
                                 print("rotation working testing:", rotation)
                                 print("Problem item rotation:", solution.placed_items[item_index].rotation)
                                 shape = placed_shape.shape
+                                print("shape=",shape)
                                 position_offset = (0, 0)
                                 x, y = get_shape_exterior_points(shape, False)
                                 if position_offset != (0, 0):

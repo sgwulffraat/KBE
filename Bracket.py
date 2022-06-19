@@ -20,27 +20,27 @@ sys.path.append('source')
 
 
 class Bracket(GeomBase):
-    # Shape input: rectangle, circle or file
+    # Shape input: rectangle, circle or file.
     shapeoptions = ["rectangle", "circle", "file"]
 
-    # Input block bracket generator
+    # Input block bracket generator.
     bracketshape = Input("rectangle", label="Choose bracket shape:",
                          widget=Dropdown(shapeoptions, labels=["Rectangular", "Circular",
                                                                "Create from file"]))
     filename = Input(__file__, widget=FilePicker)
 
-    # Height or thickness of the to be designed bracket
+    # Height or thickness of the to be designed bracket.
     height = Input(3, validator=Positive(incl_zero=True), label="Thickness of bracket")
 
-    # Specify tolerance between connectors
+    # Specify tolerance between connectors.
     tol = Input(3, label="Tolerance", validator=Positive(incl_zero=True))
 
-    # Connector input: various abbreviated connector types. See 'Connector details.xsl' for reference.
+    # Connector input: various abbreviated connector types.  See 'Connector details.xsl' for reference.
     connectorlabels, df, df2 = read_connector_excel('Connector details.xlsx', 'Connector details',
                                                     'Cavity specific area')
     connectorlabels = connectorlabels + ["No connector added yet"]
 
-    # Widget section connector type selection
+    # Widget section connector type selection.
     type1 = Input("MIL/20-A", label="Type Connector (to be added)",
                   widget=Dropdown(connectorlabels))
     n1 = Input(1, label="Number of this type (to be added)", validator=Positive(incl_zero=True))
@@ -79,6 +79,7 @@ class Bracket(GeomBase):
     container = Input(Container(np.inf, Polygon([(0, 0), (1, 0), (1, 1), (0, 1)])))
     items = Input(Item(Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]), 1, 0))
 
+    # Only generate radius when bracketshape == circle.
     @Input
     def radius(self):
         if self.bracketshape == "circle":
@@ -87,6 +88,7 @@ class Bracket(GeomBase):
             radius = None
         return radius
 
+    # Only generate length and width when bracketshape == rectangle.
     @Input
     def width(self):
         if self.bracketshape == "rectangle":
@@ -103,6 +105,7 @@ class Bracket(GeomBase):
             length = None
         return length
 
+    # Check whether file is loaded and is of correct type.
     @Attribute
     def valid_file(self):
         valid_file = False
@@ -116,6 +119,7 @@ class Bracket(GeomBase):
                     generate_warning("Warning: Invalid file", msg)
         return valid_file
 
+    # Button to visualize bracket solid.
     @action(label="Click to show bracket", button_label="SHOW")
     def show_bracket(self):
         if self.bracketshape == 'file':
@@ -136,41 +140,7 @@ class Bracket(GeomBase):
                 hide(self.bracket_from_file.children[0].children[0].children[0].children[0])
             show(self.bracket_cylinder)
 
-    @Attribute
-    def initial_placement_problem(self):
-        problems, problem_names, manual_solutions = create_knapsack_packing_problem(self.initial_placement_container,
-                                                                                    self.initial_placement_items[0])
-        return problems, problem_names, manual_solutions
-
-    @Attribute
-    def initial_placement(self):
-        for i, (problem, problem_name, solution) in enumerate(zip(self.initial_placement_problem[0],
-                                                                  self.initial_placement_problem[1],
-                                                                  self.initial_placement_problem[2])):
-            population = generate_population(problem, self.population_size,
-                                             initial_solution_generations=self.initial_solution_generations)
-
-        for i in range(self.population_size):
-            max_value = 0
-            if population[i].value > max_value:
-                max_value = population[i].value
-                max_index = i
-
-        cog = [[]]*(self.n1+self.n2+self.n3+self.n4)
-        for i in range(self.n1+self.n2+self.n3+self.n4):
-            print(range(self.n1+self.n2+self.n3+self.n4))
-            if i in population[max_index].placed_items.keys():
-                print(population[max_index].placed_items.keys())
-                x, y = population[max_index].placed_items[i].position
-                print(x, y)
-                cog[i] = [x, y, 0]
-            else:
-                cog[i] = [self.optimize_container.centroid.x, self.optimize_container.centroid.y, 0]
-
-        print(cog)
-
-        return cog
-
+    # Determines surface area of bracket
     @Attribute
     def bracket_area(self):
         if self.bracketshape == "rectangle":
@@ -183,30 +153,31 @@ class Bracket(GeomBase):
             bracket_area = 0
         return bracket_area
 
-    @Attribute
-    def initial_placement_items(self):
-        if self.n1_problem < self.n1:
-            self.n1_problem = self.n1
-        if self.n2_problem < self.n2:
-            self.n2_problem = self.n2
-        if self.n3_problem < self.n3:
-            self.n3_problem = self.n3
-        if self.n4_problem < self.n4:
-            self.n4_problem = self.n4
-        items1, area1 = connector_input_converter(self.type1, self.n1, self.tol, self.df, self.df2)
-        items2, area2 = connector_input_converter(self.type2, self.n2, self.tol, self.df, self.df2)
-        items3, area3 = connector_input_converter(self.type3, self.n3, self.tol, self.df, self.df2)
-        items4, area4 = connector_input_converter(self.type4, self.n4, self.tol, self.df, self.df2)
-        if area1 + area2 + area3 + area4 > self.bracket_area:
-            msg = "Combined connector area larger than bracket area, impossible " \
-                  "to fit all connectors. Try using less or smaller connectors"
-            warnings.warn(msg)
-            if self.popup_gui:
-                generate_warning("Warning: Value changed", msg)
-        input = items1 + items2 + items3 + items4
-        area = [area1, area2, area3, area4]
-        return input, area
+    #@Attribute
+    #def initial_placement_items(self):
+    #    if self.n1_problem < self.n1:
+    #        self.n1_problem = self.n1
+    #    if self.n2_problem < self.n2:
+    #        self.n2_problem = self.n2
+    #    if self.n3_problem < self.n3:
+    #        self.n3_problem = self.n3
+    #    if self.n4_problem < self.n4:
+    #        self.n4_problem = self.n4
+    #    items1, area1 = connector_input_converter(self.type1, self.n1, self.tol, self.df, self.df2)
+    #    items2, area2 = connector_input_converter(self.type2, self.n2, self.tol, self.df, self.df2)
+    #    items3, area3 = connector_input_converter(self.type3, self.n3, self.tol, self.df, self.df2)
+    #    items4, area4 = connector_input_converter(self.type4, self.n4, self.tol, self.df, self.df2)
+    #    if area1 + area2 + area3 + area4 > self.bracket_area:
+    #        msg = "Combined connector area larger than bracket area, impossible " \
+    #              "to fit all connectors. Try using less or smaller connectors"
+    #        warnings.warn(msg)
+    #        if self.popup_gui:
+    #            generate_warning("Warning: Value changed", msg)
+    #    input = items1 + items2 + items3 + items4
+    #    area = [area1, area2, area3, area4]
+    #    return input, area
 
+    # Generates all items to be solved for
     @Attribute
     def optimize_items(self):
         items1, area1 = connector_input_converter(self.type1, self.n1_problem, self.tol, self.df, self.df2)
@@ -222,6 +193,7 @@ class Bracket(GeomBase):
         input = items1 + items2 + items3 + items4
         area = [area1, area2, area3, area4]
         return input, area
+
 
     @Attribute
     def initial_placement_container(self):
@@ -444,50 +416,6 @@ class Bracket(GeomBase):
                     self.connectors[prnt].circular_connector.remove(slctd_obj)
                     if self.connectors[prnt].circular_connector.quantify == 0:
                         self.connectors.remove(self.connectors[prnt])
-
-    # @Part
-    # def connector_part1(self):
-    #     return Connector(c_type=self.type1,
-    #                      df=self.df,
-    #                      n=self.n1,
-    #                      bracket_height=self.height,
-    #                      cog=self.initial_placement[0:self.n1],
-    #                      rotation=[0]*self.n1,
-    #                      color=self.connector_color,
-    #                      label="Connector type 1")
-    #
-    # @Part
-    # def connector_part2(self):
-    #     return Connector(c_type=self.type2,
-    #                      df=self.df,
-    #                      n=self.n2,
-    #                      bracket_height=self.height,
-    #                      cog=self.initial_placement[self.n1:self.n1+self.n2],
-    #                      rotation=[0] * self.n2,
-    #                      color=self.connector_color,
-    #                      label="Connector type 2")
-    #
-    # @Part
-    # def connector_part3(self):
-    #     return Connector(c_type=self.type3,
-    #                      df=self.df,
-    #                      n=self.n3,
-    #                      bracket_height=self.height,
-    #                      cog=self.initial_placement[self.n1+self.n2:self.n1+self.n2+self.n3],
-    #                      rotation=[0] * self.n3,
-    #                      color=self.connector_color,
-    #                      label="Connector type 3")
-    #
-    # @Part
-    # def connector_part4(self):
-    #     return Connector(c_type=self.type4,
-    #                      df=self.df,
-    #                      n=self.n4,
-    #                      bracket_height=self.height,
-    #                      cog=self.initial_placement[self.n1+self.n2+self.n3:self.n1+self.n2+self.n3+self.n4],
-    #                      rotation=[0] * self.n4,
-    #                      color=self.connector_color,
-    #                      label="Connector type 4")
 
     @Part
     def bracket_box(self):
