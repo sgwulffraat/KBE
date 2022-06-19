@@ -103,7 +103,7 @@ class Connector(GeomBase):
                                hidden=False if self.shape == "circle" else True,
                                label=self.c_type,
                                quantify=self.n,
-                               position= translate(self.position,
+                               position=translate(self.position,
                                                    'x', self.cog[child.index][0],
                                                    'y', self.cog[child.index][1],
                                                    'z', 0),

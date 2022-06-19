@@ -16,10 +16,10 @@ Bracket
 - max x max y bracket from file
 
 Manipulable:
-- Colors & Labels
+- Labels
 - Optimized solution manipulable
-- testing from file
-- action decorator buttons
+- Testing from file
+- Action decorator buttons
 
 Structural
 - simplified package open source
