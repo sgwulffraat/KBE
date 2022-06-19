@@ -1,14 +1,14 @@
-from parapy.geom import *
-from parapy.gui.display import get_top_window, refresh_top_window
-from parapy.core import *
+from parapy.geom import GeomBase, Box, Cylinder, translate, rotate90, TextLabel
+from parapy.gui.display import get_top_window
+from parapy.core import Input, Attribute, Part, warnings, MutableSequence, List, action
 from parapy.core.widgets import Dropdown, FilePicker
-from parapy.core.validate import *
-from parapy.exchange import *
+from parapy.core.validate import Positive
+from parapy.exchange import STEPReader, STEPWriter
 from connector import Connector
+from parapy.gui.actions import ViewerSelection
 from connector_input_converter import connector_input_converter, read_connector_excel, connector_class_input_converter
 from shapely.geometry import Polygon, Point
 from source.circle import Circle
-from parapy.geom import TextLabel
 from Manipulation2 import ManipulateAnything
 import numpy as np
 import sys
@@ -16,51 +16,50 @@ from source.evolutionary import generate_population
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from working_testing import create_knapsack_packing_problem
 from warnings_and_functions import generate_warning, show, hide, initial_item_placement
-from parapy.gui.actions import ViewerSelection
 sys.path.append('source')
-
 
 
 class Bracket(GeomBase):
     # Shape input: rectangle, circle or file
     shapeoptions = ["rectangle", "circle", "file"]
 
-    # Connector input: various abbreviated connector types. See 'Connector details.xsl' for reference.
-    connectorlabels, df, df2 = read_connector_excel('Connector details.xlsx', 'Connector details',
-                                                    'Cavity specific area')
-
     # Input block bracket generator
-    bracketshape = Input("rectangle",
+    bracketshape = Input("rectangle", label="Choose bracket shape:",
                          widget=Dropdown(shapeoptions, labels=["Rectangular", "Circular",
                                                                "Create from file"]))
     filename = Input(__file__, widget=FilePicker)
 
-    # Widget section connector type selection
-    type1 = Input("MIL/20-A", label="Type Connector",
-                  widget=Dropdown(connectorlabels))
-    n1 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
-    n1_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
-
-    type2 = Input("MIL/24-A", label="Type Connector",
-                  widget=Dropdown(connectorlabels))
-    n2 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
-    n2_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
-
-    type3 = Input("EN-2", label="Type Connector",
-                  widget=Dropdown(connectorlabels))
-    n3 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
-    n3_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
-
-    type4 = Input("EN-4", label="Type Connector",
-                  widget=Dropdown(connectorlabels))
-    n4 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
-    n4_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
+    # Height or thickness of the to be designed bracket
+    height = Input(3, validator=Positive(incl_zero=True), label="Thickness of bracket")
 
     # Specify tolerance between connectors
     tol = Input(3, label="Tolerance", validator=Positive(incl_zero=True))
 
-    # Height or thickness of the to be designed bracket
-    height = Input(3, validator=Positive(incl_zero=True), label="Thickness of bracket")
+    # Connector input: various abbreviated connector types. See 'Connector details.xsl' for reference.
+    connectorlabels, df, df2 = read_connector_excel('Connector details.xlsx', 'Connector details',
+                                                    'Cavity specific area')
+    connectorlabels = connectorlabels + ["No connector added yet"]
+
+    # Widget section connector type selection
+    type1 = Input("MIL/20-A", label="Type Connector (to be added)",
+                  widget=Dropdown(connectorlabels))
+    n1 = Input(1, label="Number of this type (to be added)", validator=Positive(incl_zero=True))
+    n1_problem = Input(1, label="Total number of this type", validator=Positive(incl_zero=True))
+
+    type2 = Input("No connector added yet", label="Type Connector",
+                  widget=Dropdown(connectorlabels))
+    n2 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n2_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
+
+    type3 = Input("No connector added yet", label="Type Connector",
+                  widget=Dropdown(connectorlabels))
+    n3 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n3_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
+
+    type4 = Input("No connector added yet", label="Type Connector",
+                  widget=Dropdown(connectorlabels))
+    n4 = Input(0, label="Placed number of this type", validator=Positive(incl_zero=True))
+    n4_problem = Input(0, label="Total number of this type", validator=Positive(incl_zero=True))
 
     # Connector color
     connector_color = Input([98, 179, 196])
@@ -101,14 +100,13 @@ class Bracket(GeomBase):
             length = None
         return length
 
-    @Attribute
-    def bracket_shower(self):
-        if self.bracketshape == "rectangle":
-            show(self.bracket_box)
-        if self.bracketshape == "circle":
-            hide(self.bracket_box)
-            show(self.bracket_cylinder)
-
+    # @Attribute
+    # def bracket_shower(self):
+    #     if self.bracketshape == "rectangle":
+    #         show(self.bracket_box)
+    #     if self.bracketshape == "circle":
+    #         hide(self.bracket_box)
+    #         show(self.bracket_cylinder)
 
     @Attribute
     def initial_placement_problem(self):
@@ -121,7 +119,8 @@ class Bracket(GeomBase):
         for i, (problem, problem_name, solution) in enumerate(zip(self.initial_placement_problem[0],
                                                                   self.initial_placement_problem[1],
                                                                   self.initial_placement_problem[2])):
-            population = generate_population(problem, self.population_size, initial_solution_generations=self.initial_solution_generations)
+            population = generate_population(problem, self.population_size,
+                                             initial_solution_generations=self.initial_solution_generations)
 
         for i in range(self.population_size):
             max_value = 0
@@ -245,16 +244,23 @@ class Bracket(GeomBase):
             container = Polygon(points)
         return container
 
-    # @Attribute(settable=True)
-    # def conn_count(self):
-    #     n = 0
-    #     return n
-
+    # Mutable Sequence of placed connectors
     @Part
     def connectors(self):
         return MutableSequence(type=Connector,
                                quantify=0)
 
+    # List with placed types only
+    @Attribute
+    def type_list(self):
+        return List()
+
+    # List with placed types and corresponding numbers and total numbers
+    @Attribute
+    def conn_list(self):
+        return List()
+
+    # Shapely Polygon used for boundary condition check
     @Attribute
     def poly_container(self):
         if len(self.pts_container) > 1:
@@ -263,8 +269,50 @@ class Bracket(GeomBase):
             pol_container = Point(self.radius, self.radius).buffer(self.radius)
         return pol_container
 
+    # Function to update placed types and corresponding numbers in GUI
+    def update_type_list(self):
+        if len(self.type_list) == 1:
+            self.type2 = self.conn_list[0][0]
+            self.n2 = self.conn_list[0][1]
+            self.n2_problem = self.conn_list[0][2]
+            self.type3 = "No connector added yet"
+            self.n3 = 0
+            self.n3_problem = 0
+            self.type4 = "No connector added yet"
+            self.n4 = 0
+            self.n4_problem = 0
+        else:
+            self.type2 = self.conn_list[-1][0]
+            self.n2 = self.conn_list[-1][1]
+            self.n2_problem = self.conn_list[-1][2]
+        if len(self.type_list) == 2:
+            self.type3 = self.conn_list[0][0]
+            self.n3 = self.conn_list[0][1]
+            self.n3_problem = self.conn_list[0][2]
+            self.type4 = "No connector added yet"
+            self.n4 = 0
+            self.n4_problem = 0
+        if len(self.type_list) == 3:
+            self.type3 = self.conn_list[-2][0]
+            self.n3 = self.conn_list[-2][1]
+            self.n3_problem = self.conn_list[-2][2]
+            self.type4 = self.conn_list[0][0]
+            self.n4 = self.conn_list[0][1]
+            self.n4_problem = self.conn_list[0][2]
+
+    # Button to append a connector of type 1
     @action(button_label='ADD')
     def append_connector(self):
+        present = False
+        if self.type1 in self.type_list:
+            present = True
+        if present is False and len(self.type_list) >= 4:
+            msg = "Warning: You are adding a fifth connector type"
+            warnings.warn(msg)
+            if self.popup_gui:
+                generate_warning("Warning: Invalid action", msg)
+            raise Exception(msg)
+
         connector = Connector(c_type=self.type1,
                               df=self.df,
                               n=self.n1,
@@ -273,23 +321,49 @@ class Bracket(GeomBase):
                               lastplaced_item=self.connectors[-1] if len(self.connectors) > 0 else "None",
                               poly_container=self.poly_container,
                               tol=self.tol,
-                              label="Connector type 1",
+                              label="Connectors: " + self.type1,
                               color=self.connector_color,
-                              cog=initial_item_placement(self=self, bracket=self.find_child_by_label("Bracket"),
-                                                         lastplaced_item=self.connectors[-1] if len(self.connectors) > 0 else "None",
-                                                         half_width=connector_class_input_converter(self.type1, self.df)[0][0] / 2,
-                                                         half_length=connector_class_input_converter(self.type1, self.df)[0][1] / 2,
+                              cog=initial_item_placement(self=self,
+                                                         bracket=self.find_child_by_label("Bracket"),
+                                                         lastplaced_item=self.connectors[-1] if len(self.connectors) > 0
+                                                         else "None",
+                                                         half_width=connector_class_input_converter(self.type1,
+                                                                                                    self.df)[0][0]/2,
+                                                         half_length=connector_class_input_converter(self.type1,
+                                                                                                     self.df)[0][1]/2,
                                                          step=0.5, n=self.n1, tol=self.tol))
         self.connectors.append(connector)
+        if self.type1 in self.type_list:
+            indx = self.type_list.index(self.type1)
+            self.conn_list[indx][1] = self.conn_list[indx][1] + self.n1
+            self.conn_list[indx][2] = self.conn_list[indx][2] + self.n1_problem
+        else:
+            self.type_list.append(self.type1)
+            self.conn_list.append([self.type1, self.n1, self.n1_problem])
+        self.update_type_list()
+
         for i in range(0, self.n1):
             if connector.shape == "rectangle" or connector.shape == "square":
                 show(connector.rectangle_connector[i])
             if connector.shape == "circle":
                 show(connector.circular_connector[i])
 
+    # Button to remove last addition
     @action(button_label='DELETE LAST')
     def pop_last(self):
-        hide(self.connectors[-1].find_children(fn=lambda conn: conn.__class__ == Box or conn.__class__ == Cylinder))
+        pop_list = self.connectors[-1].find_children(
+            fn=lambda conn: conn.__class__ == Box or conn.__class__ == Cylinder)
+        hide(pop_list)
+        index = self.type_list.index(pop_list[0].label)
+        if self.conn_list[index][1] - len(pop_list) == 0:
+            del self.type_list[index]
+            del self.conn_list[index]
+            print("entire type:", pop_list[0].label, "deleted")
+        else:
+            self.conn_list[index][1] = self.conn_list[index][1] - len(pop_list)
+            self.conn_list[index][2] = self.conn_list[index][2] - len(pop_list)
+            print("number of type:", pop_list[0].label, "reduced to", self.conn_list[index][1])
+        self.update_type_list()
         self.connectors.pop()
 
     @action(button_label='DELETE SELECTION')
@@ -301,6 +375,7 @@ class Bracket(GeomBase):
             for slctd_obj in context.selected:
                 prnt = slctd_obj.parent.index
                 if slctd_obj.__class__ == Box:
+                    # Prevent user from removing bracket object
                     if slctd_obj == self.bracket_box \
                             or slctd_obj == self.bracket_cylinder \
                             or slctd_obj == self.bracket_from_file:
@@ -309,12 +384,36 @@ class Bracket(GeomBase):
                         if self.popup_gui:
                             generate_warning("Warning: Invalid action", msg)
                     else:
-                        hide(self.connectors[prnt].rectangle_connector[slctd_obj.index])
+                        # Hide the removed box object from the GUI and from parent lists
+                        removed_obj = self.connectors[prnt].rectangle_connector[slctd_obj.index]
+                        hide(removed_obj)
+                        index = self.type_list.index(removed_obj.label)
+                        if self.conn_list[index][1] - 1 == 0:
+                            del self.type_list[index]
+                            del self.conn_list[index]
+                            print("entire type:", removed_obj.label, "deleted")
+                        else:
+                            self.conn_list[index][1] = self.conn_list[index][1] - 1
+                            self.conn_list[index][2] = self.conn_list[index][2] - 1
+                            print("number of type:", removed_obj.label, "reduced to", self.conn_list[index][1])
+                        self.update_type_list()
                         self.connectors[prnt].rectangle_connector.remove(slctd_obj)
                     if self.connectors[prnt].rectangle_connector.quantify == 0:
                         self.connectors.remove(self.connectors[prnt])
-                if slctd_obj.__class__ == Cylinder:
-                    hide(self.connectors[prnt].circular_connector[slctd_obj.index])
+                elif slctd_obj.__class__ == Cylinder:
+                    # Hide the removed cylinder object from the GUI and from parent lists
+                    removed_obj = self.connectors[prnt].circular_connector[slctd_obj.index]
+                    hide(removed_obj)
+                    index = self.type_list.index(removed_obj.label)
+                    if self.conn_list[index][1] - 1 == 0:
+                        del self.type_list[index]
+                        del self.conn_list[index]
+                        print("entire type:", removed_obj.label, "removed")
+                    else:
+                        self.conn_list[index][1] = self.conn_list[index][1] - 1
+                        self.conn_list[index][2] = self.conn_list[index][2] - 1
+                        print("number of type:", removed_obj.label, "reduced to", self.conn_list[index][1])
+                    self.update_type_list()
                     self.connectors[prnt].circular_connector.remove(slctd_obj)
                     if self.connectors[prnt].circular_connector.quantify == 0:
                         self.connectors.remove(self.connectors[prnt])
@@ -402,12 +501,6 @@ class Bracket(GeomBase):
                                             'y', 1,
                                             'z', self.height),
                          overlay=True)
-
-    @action
-    def test(self):
-        print(self.connectors.find_children(fn=lambda conn: conn.label == "MIL/20-A"))
-        print(self.connectors.find_children(fn=lambda conn: conn.__class__ == Cylinder))
-
 
     # @Attribute(in_tree=True)
     # def labels_connectors(self):
