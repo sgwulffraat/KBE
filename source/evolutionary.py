@@ -33,7 +33,7 @@ POPULATION_UPDATE_POOL_SIZE = 3
 INITIAL_SOLUTION_GENERATION_MAX_ITER_NUM = 1000
 
 # maximum number of iterations to assume that a generated initial solution has converged
-INITIAL_SOLUTION_GENERATION_CONVERGE_ITER_NUM = 500
+INITIAL_SOLUTION_GENERATION_CONVERGE_ITER_NUM = 3000
 
 # minimum number of iterations of mutation
 MUTATION_MIN_ITER_NUM = 5
@@ -265,15 +265,15 @@ def get_fittest_solutions(solutions, size, break_ties=True):
     return solutions_by_fitness
 
 
-def generate_initial_solution(problem, item_index_to_place_first=-1, item_specialization_iter_proportion=0., calculate_times=False):
+def generate_initial_solution(problem, initial_solution_generations, item_index_to_place_first=-1, item_specialization_iter_proportion=0., calculate_times=False):
 
     """Generate an initial solution for the passed problem trying to place randomly selected items until some termination criteria is met"""
 
     # use the greedy algorithm without weighting, with pure random choices
-    return greedy.solve_problem(problem, greedy_score_function=greedy.get_constant_score, repetition_num=1, max_iter_num=INITIAL_SOLUTION_GENERATION_MAX_ITER_NUM, max_iter_num_without_changes=INITIAL_SOLUTION_GENERATION_CONVERGE_ITER_NUM, item_index_to_place_first=item_index_to_place_first, item_specialization_iter_proportion=item_specialization_iter_proportion, calculate_times=calculate_times)
+    return greedy.solve_problem(problem, greedy_score_function=greedy.get_constant_score, repetition_num=1, max_iter_num=initial_solution_generations, max_iter_num_without_changes=INITIAL_SOLUTION_GENERATION_CONVERGE_ITER_NUM, item_index_to_place_first=item_index_to_place_first, item_specialization_iter_proportion=item_specialization_iter_proportion, calculate_times=calculate_times)
 
 
-def generate_population(problem, population_size, item_specialization_iter_proportion):
+def generate_population(problem, population_size, initial_solution_generations, item_specialization_iter_proportion = INITIAL_SOLUTION_GENERATION_FIRST_ITEM_SPECIALIZATION_ITER_PROPORTION):
 
     """Generate a population of the passed size for the passed problem"""
 
@@ -293,11 +293,11 @@ def generate_population(problem, population_size, item_specialization_iter_propo
     # for each feasible item, initialize a certain number of solutions with that item placed first (if possible)
     for item_index in feasible_item_indices:
 
-        population.extend([generate_initial_solution(problem, item_index, item_specialization_iter_proportion) for _ in range(solution_num_per_item_specialization)])
+        population.extend([generate_initial_solution(problem, initial_solution_generations=initial_solution_generations, item_index_to_place_first=item_index, item_specialization_iter_proportion=item_specialization_iter_proportion) for _ in range(solution_num_per_item_specialization)])
 
     # create as many solutions with standard initialization as needed to reach the wanted population size
     remaining_solution_num = population_size - len(population)
-    population.extend([generate_initial_solution(problem) for _ in range(remaining_solution_num)])
+    population.extend([generate_initial_solution(problem, initial_solution_generations=initial_solution_generations) for _ in range(remaining_solution_num)])
 
     return population
 

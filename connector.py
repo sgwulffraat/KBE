@@ -8,7 +8,7 @@ class Connector(GeomBase):
     c_type = Input()
     df = Input()
     n = Input(1)
-    height = Input(1)
+    height = Input(10)
     cog = Input([[0, 0, 0]])
     rotation = Input([0])
     color = Input([83, 120, 128])
@@ -98,8 +98,7 @@ class Connector(GeomBase):
                                position=rotate(
                                                       translate(self.position,
                                                                 'x', self.cog[child.index][0],
-                                                                'y', self.cog[child.index][1],
-                                                                'z', self.bracket_height),
+                                                                'y', self.cog[child.index][1]),#,'z', self.bracket_height),
                                                       'z', self.rotation[child.index],
                                                       deg=self.deg),
                                color=self.color,

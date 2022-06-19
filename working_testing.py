@@ -26,6 +26,7 @@ def create_knapsack_packing_problem(container, items, can_print=False):
     container = Container(max_weight, container_shape)
 
     connectors = items
+    print(items[0].shape)
     problem = Problem(container, connectors)
     problems.append(problem)
 
