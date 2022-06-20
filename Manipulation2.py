@@ -1,5 +1,5 @@
 from parapy.core import Base, Input, on_event, Attribute
-from parapy.geom import Compound, Position, Vector, Circle, Box, Cylinder
+from parapy.geom import Compound, Position, Vector, Circle, Box, Cylinder, translate
 from parapy.core.validate import warnings
 from parapy.geom import Polygon as para_Polygon
 from parapy.geom import Point as para_Point
@@ -35,11 +35,18 @@ class ManipulateAnything(Base):
         """Parapy GUI boundary polygon of bracket"""
         boundary_bounds = []
         bound_para_points = []
-        for j in range(len(self.to_manipulate.pts_container)):
-            bound_para_points.append(para_Point(self.to_manipulate.pts_container[j][0],
-                                                self.to_manipulate.pts_container[j][1],
-                                                self.to_manipulate.height))
-        boundary_bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
+        if self.to_manipulate.bracketshape == 'rectangle' \
+                or self.to_manipulate.bracketshape == 'file':
+            for j in range(len(self.to_manipulate.pts_container)):
+                bound_para_points.append(para_Point(self.to_manipulate.pts_container[j][0],
+                                                    self.to_manipulate.pts_container[j][1],
+                                                    self.to_manipulate.height))
+            boundary_bounds.append(para_Polygon(bound_para_points, color='red', transparency=.5))
+        else:
+            boundary_bounds.append(Circle(radius=self.to_manipulate.radius,
+                                          position=translate(self.to_manipulate.bracket_cylinder.position,
+                                                             'z', self.to_manipulate.height),
+                                          color='red', transparency=.5))
         return boundary_bounds
 
     @Attribute
