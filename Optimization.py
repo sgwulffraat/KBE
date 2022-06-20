@@ -433,10 +433,10 @@ Area utilization: {area_connectors / self.bracket.to_manipulate.bracket_area * 1
             elif self.bracket.to_manipulate.bracketshape == 'circle':
                 bracket = self.bracket.to_manipulate.bracket_cylinder
             elif self.bracket.to_manipulate.bracketshape == "file":
-                bracket = ExtrudedSolid(face_in=self.bracket.to_manipulate.bracket_from_file.children[0].children[0].
-                                        children[0].children[0].faces[0],
-                                        distance=self.bracket.to_manipulate.height,
-                                        direction='z')
+                bracket = self.bracket.to_manipulate.bracket_from_file.children[0].children[0].children[0].children[0].solids[0] #ExtrudedSolid(face_in=self.bracket.to_manipulate.bracket_from_file.children[0].children[0].
+                                        #children[0].children[0].faces[0],
+                                        #distance=self.bracket.to_manipulate.height,
+                                        #direction='z')
 
 
             # Generates tools to make holes in the bracket.
