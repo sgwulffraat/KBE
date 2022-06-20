@@ -69,7 +69,8 @@ class Connector(GeomBase):
                                                          'x', self.cog[child.index][0],
                                                          'y', self.cog[child.index][1],
                                                          'z', self.height/2),
-                                                'z',self.rotation[child.index]),
+                                                'z',self.rotation[child.index],
+                                                deg=True),
                                color=self.color,
                                transparency=0.5)
 
