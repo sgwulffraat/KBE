@@ -13,8 +13,8 @@ Furthermore, the setting rotation_step can be adjusted to yield some more logica
 
 The following packages must be installed:
 Shapely 1.7.1 (newer verions result in errors)
-pandas (newest version)
-numpy (newest version)
-pickle (newest version)
-Parapy (newest version)
-openpyxl (newest version)
+pandas (1.3.5)
+numpy (1.21.6)
+pickle
+Parapy (1.9.1)
+openpyxl (3.0.9)
