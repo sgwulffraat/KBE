@@ -3,16 +3,16 @@ from parapy.geom import *
 from parapy.core import *
 from parapy.core.widgets import Dropdown
 from Bracket import Bracket, generate_warning
-from working_testing import perform_experiments
+from source.working_testing import perform_experiments
 from parapy.exchange import *
 from parapy.geom.generic.utilities import vector_angle
 import math
 from source.evolutionary import generate_population
-from working_testing import create_knapsack_packing_problem
+from source.working_testing import create_knapsack_packing_problem
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from Manipulation2 import ManipulateAnything
 from connector import Connector
-from warnings_and_functions import show, pol_conn, overlap_check
+from warnings_and_functions import show, overlap_check
 import numpy as np
 import sys
 sys.path.append('source')
