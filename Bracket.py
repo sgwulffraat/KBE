@@ -178,9 +178,9 @@ class Bracket(GeomBase):
             pts_container = [self.radius]
         if self.bracketshape == 'file':
             points = []
-            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[1].children)):
-                points.append((self.bracket_from_file.children[0].children[0].children[1].children[i].start.x,
-                               self.bracket_from_file.children[0].children[0].children[1].children[i].start.y))
+            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[0].children[0].edges)):
+                points.append((self.bracket_from_file.children[0].children[0].children[0].children[0].edges[i].start.x,
+                               self.bracket_from_file.children[0].children[0].children[0].children[0].edges[i].start.y))
             pts_container = points
         return pts_container
 
