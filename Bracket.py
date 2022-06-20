@@ -124,7 +124,6 @@ class Bracket(GeomBase):
                 self.bracket_from_file.children[0].children[0].children[0].children[0].color = \
                     self.bracket_color
                 show(self.bracket_from_file.children[0].children[0].children[0].children[0])
-
         elif self.bracketshape == 'rectangle':
             if self.valid_file is True:
                 hide(self.bracket_from_file.children[0].children[0].children[0].children[0])
@@ -144,7 +143,7 @@ class Bracket(GeomBase):
         elif self.bracketshape == "circle":
             bracket_area = np.pi * self.radius**2
         elif self.bracketshape == "file":
-            bracket_area = self.bracket_from_file.children[0].children[0].children[0].children[0].area
+            bracket_area = self.bracket_from_file.children[0].children[0].children[1].area
         else:
             bracket_area = 0
         return bracket_area
@@ -173,14 +172,15 @@ class Bracket(GeomBase):
     @Attribute
     def pts_container(self):
         if self.bracketshape == "rectangle":
-            pts_container = [(0.0, 0), (self.width, 0.0), (self.width, self.length), (0.0, self.length)]
+            pts_container = [(0.0, 0), (self.width, 0.0), (self.width, self.length),
+                             (0.0, self.length)]
         if self.bracketshape == "circle":
             pts_container = [self.radius]
         if self.bracketshape == 'file':
             points = []
-            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[1].children)):
-                points.append((self.bracket_from_file.children[0].children[0].children[1].children[i].start.x,
-                               self.bracket_from_file.children[0].children[0].children[1].children[i].start.y))
+            for i in range(0, len(self.bracket_from_file.children[0].children[0].children[2].children)):
+                points.append((self.bracket_from_file.children[0].children[0].children[2].children[i].start.x,
+                               self.bracket_from_file.children[0].children[0].children[2].children[i].start.y))
             pts_container = points
         return pts_container
 
@@ -229,6 +229,16 @@ class Bracket(GeomBase):
 
     def update_type_list(self):
         """Function to update placed types and corresponding numbers in GUI"""
+        if len(self.type_list) == 0:
+            self.type2 = "No connector added yet"
+            self.n2 = 0
+            self.n2_problem = 0
+            self.type3 = "No connector added yet"
+            self.n3 = 0
+            self.n3_problem = 0
+            self.type4 = "No connector added yet"
+            self.n4 = 0
+            self.n4_problem = 0
         if len(self.type_list) == 1:
             self.type2 = self.conn_list[0][0]
             self.n2 = self.conn_list[0][1]
@@ -239,11 +249,10 @@ class Bracket(GeomBase):
             self.type4 = "No connector added yet"
             self.n4 = 0
             self.n4_problem = 0
-        else:
+        if len(self.type_list) == 2:
             self.type2 = self.conn_list[-1][0]
             self.n2 = self.conn_list[-1][1]
             self.n2_problem = self.conn_list[-1][2]
-        if len(self.type_list) == 2:
             self.type3 = self.conn_list[0][0]
             self.n3 = self.conn_list[0][1]
             self.n3_problem = self.conn_list[0][2]
@@ -251,6 +260,9 @@ class Bracket(GeomBase):
             self.n4 = 0
             self.n4_problem = 0
         if len(self.type_list) == 3:
+            self.type2 = self.conn_list[-1][0]
+            self.n2 = self.conn_list[-1][1]
+            self.n2_problem = self.conn_list[-1][2]
             self.type3 = self.conn_list[-2][0]
             self.n3 = self.conn_list[-2][1]
             self.n3_problem = self.conn_list[-2][2]
@@ -308,20 +320,26 @@ class Bracket(GeomBase):
     # Button to remove last addition
     @action(label='Click to remove last addition', button_label='DELETE LAST')
     def pop_last(self):
-        pop_list = self.connectors[-1].find_children(
-            fn=lambda conn: conn.__class__ == Box or conn.__class__ == Cylinder)
-        hide(pop_list)
-        index = self.type_list.index(pop_list[0].label)
-        if self.conn_list[index][1] - len(pop_list) == 0:
-            del self.type_list[index]
-            del self.conn_list[index]
-            print("entire type:", pop_list[0].label, "deleted")
+        if len(self.connectors) == 0:
+            msg = "Warning: All connectors have already been deleted"
+            warnings.warn(msg)
+            if self.popup_gui:
+                generate_warning("Warning: Invalid action", msg)
         else:
-            self.conn_list[index][1] = self.conn_list[index][1] - len(pop_list)
-            self.conn_list[index][2] = self.conn_list[index][2] - len(pop_list)
-            print("number of type:", pop_list[0].label, "reduced to", self.conn_list[index][1])
-        self.update_type_list()
-        self.connectors.pop()
+            pop_list = self.connectors[-1].find_children(
+                fn=lambda conn: conn.__class__ == Box or conn.__class__ == Cylinder)
+            hide(pop_list)
+            index = self.type_list.index(pop_list[0].label)
+            if self.conn_list[index][1] - len(pop_list) == 0:
+                del self.type_list[index]
+                del self.conn_list[index]
+                print("entire type:", pop_list[0].label, "deleted")
+            else:
+                self.conn_list[index][1] = self.conn_list[index][1] - len(pop_list)
+                self.conn_list[index][2] = self.conn_list[index][2] - len(pop_list)
+                print("number of type:", pop_list[0].label, "reduced to", self.conn_list[index][1])
+            self.update_type_list()
+            self.connectors.pop()
 
     @action(label="Click to remove selection", button_label='DELETE SELECTION')
     def remove_connectors(self):

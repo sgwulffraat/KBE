@@ -95,7 +95,6 @@ def initial_item_placement(self, bracket, lastplaced_item, half_width, half_leng
             else:
                 start_position_x = half_width + tol
                 start_position_y = half_length + tol
-
         for j in range(0, round((bracket_max_y
                                  - (start_position_y + previous_half_length + tol)) / half_length) + 1):
             if iteration is True:
@@ -113,6 +112,7 @@ def initial_item_placement(self, bracket, lastplaced_item, half_width, half_leng
                     else:
                         position = [half_width + tol, start_position_y + previous_half_length + tol + j * half_length]
                 while position[0] < bracket_max_x:
+                    position[0] = position[0] + step
                     pol_connector = Polygon([(position[0] + (half_width + tol),
                                               position[1] + (half_length + tol)),
                                              (position[0] + (half_width + tol),
@@ -127,8 +127,6 @@ def initial_item_placement(self, bracket, lastplaced_item, half_width, half_leng
                         iteration = False
                         solution = True
                         break
-                    else:
-                        position[0] = position[0] + step
         else:
             if solution is False:
                 position_list.append([bracket.cog[0], bracket.cog[1]])
