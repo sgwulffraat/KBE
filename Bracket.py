@@ -143,7 +143,7 @@ class Bracket(GeomBase):
         elif self.bracketshape == "circle":
             bracket_area = np.pi * self.radius**2
         elif self.bracketshape == "file":
-            bracket_area = self.bracket_from_file.children[0].children[0].children[1].area
+            bracket_area = self.bracket_from_file.children[0].children[0].children[1].children[0].area
         else:
             bracket_area = 0
         return bracket_area
