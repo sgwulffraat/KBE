@@ -10,12 +10,13 @@ from connector_input_converter import connector_input_converter, read_connector_
     connector_class_input_converter
 from shapely.geometry import Polygon, Point
 from source.circle import Circle
-from Manipulation2 import ManipulateAnything
+from Manipulation import ManipulateAnything
 import numpy as np
 import sys
 from source.problem_solution import Container, Item
 from warnings_and_functions import generate_warning, show, hide, initial_item_placement
 sys.path.append('source')
+
 
 
 class Bracket(GeomBase):

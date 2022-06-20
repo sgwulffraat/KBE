@@ -1,6 +1,5 @@
 from source.problem_solution import Item
 from shapely.geometry import Polygon, Point
-from source.circle import Circle
 import numpy as np
 import pandas as pd
 

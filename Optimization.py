@@ -10,12 +10,13 @@ import math
 from source.evolutionary import generate_population
 from source.working_testing import create_knapsack_packing_problem
 from source.problem_solution import PlacedShape, Solution, Container, Item
-from Manipulation2 import ManipulateAnything
+from Manipulation import ManipulateAnything
 from connector import Connector
 from warnings_and_functions import show, overlap_check
 import numpy as np
 import sys
 sys.path.append('source')
+
 
 
 class InitialSolution(GeomBase):
