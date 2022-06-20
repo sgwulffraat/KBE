@@ -3,7 +3,7 @@ from parapy.core import Base, ensure_iterable
 from parapy.gui.display import get_top_window
 from parapy.gui.viewer import Viewer
 from parapy.geom import Box, Cylinder, translate
-from shapely.geometry import Polygon
+from shapely.geometry import Point, Polygon
 
 def generate_warning(warning_header, msg):
     from tkinter import Tk, messagebox
@@ -43,68 +43,65 @@ def redraw(objects: typing.Union[Base, typing.Iterable[Base]], show: bool,
     else:
         viewer.hide(objects, update=update)
 
-    def pol_pts(self, stationary_connector, tol):
-        """Function to get edge points of any rectangular connector"""
-        pts = [(stationary_connector.cog[0] + ((stationary_connector.width/2 + tol)
-                                               * (stationary_connector.orientation.x[0])
-                                               - (stationary_connector.length/2 + tol)
-                                               * (stationary_connector.orientation.x[1])),
-                stationary_connector.cog[1] + ((stationary_connector.width/2 + tol)
-                                               * -(stationary_connector.orientation.y[0])
-                                               + (stationary_connector.length/2 + tol)
-                                               * (stationary_connector.orientation.y[1]))),
-               (stationary_connector.cog[0] + ((stationary_connector.width/2 + tol)
-                                               * (stationary_connector.orientation.x[0])
-                                               + (stationary_connector.length/2 + tol)
-                                               * (stationary_connector.orientation.x[1])),
-                stationary_connector.cog[1] - ((stationary_connector.length/2 + tol)
-                                               * (stationary_connector.orientation.y[1])
-                                               + (stationary_connector.width/2 + tol)
-                                               * (stationary_connector.orientation.y[0]))),
-               (stationary_connector.cog[0] - ((stationary_connector.width/2 + tol)
-                                               * (stationary_connector.orientation.x[0])
-                                               - (stationary_connector.length/2 + tol)
-                                               * (stationary_connector.orientation.x[1])),
-                stationary_connector.cog[1] - ((stationary_connector.width/2 + tol)
-                                               * -(stationary_connector.orientation.y[0])
-                                               + (stationary_connector.length/2 + tol)
-                                               * (stationary_connector.orientation.y[1]))),
-               (stationary_connector.cog[0] - ((stationary_connector.width/2 + tol)
-                                               * (stationary_connector.orientation.x[0])
-                                               + (stationary_connector.length/2 + tol)
-                                               * (stationary_connector.orientation.x[1])),
-                stationary_connector.cog[1] + ((stationary_connector.width/2 + tol)
-                                               * (stationary_connector.orientation.y[0])
-                                               + (stationary_connector.length/2 + tol)
-                                               * (stationary_connector.orientation.y[1])))
-               ]
-        return pts
-#
-# def overlap_check()
-#     pol_list = []
-#     box_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__
-#                                                                            == Box)
-#     cylinder_list = self.to_manipulate.connectors.find_children(fn=lambda conn: conn.__class__
-#                                                                                 == Cylinder)
-#     if type(self.slctd_conn) is not str:
-#         for cylinder in cylinder_list:
-#             if cylinder.id != self.slctd_conn.id:
-#                 stationary_cylinder = cylinder
-#                 polygon = Point((stationary_cylinder.cog[0]),
-#                                 (stationary_cylinder.cog[1])).buffer(stationary_cylinder.radius
-#                                                                      + tol)
-#                 pol_list.append(polygon)
-#         for box in box_list:
-#             if box.id != self.slctd_conn.id:
-#                 stationary_connector = box
-#                 polygon = Polygon(self.pol_pts(stationary_connector))
-#                 pol_list.append(polygon)
-#
-#     if len(self.pol_list) != 0:
-#         cond = []
-#         for i in range(0, len(self.pol_list)):
-#             cond.append(pol_connector_no_tol.overlaps(self.pol_list[i]))
-#         if any(cond):
+def pol_conn(connector, tol):
+    """Function to get polygon of any connector"""
+    if len(connector.faces) == 3:
+        polygon = Point(connector.cog[0], connector.cog[1]).buffer(connector.radius)
+    elif len(connector.faces) == 6:
+        polygon = Polygon([(connector.cog[0] + ((connector.width/2 + tol)
+                                               * (connector.orientation.x[0])
+                                               - (connector.length/2 + tol)
+                                               * (connector.orientation.x[1])),
+                connector.cog[1] + ((connector.width/2 + tol)
+                                               * -(connector.orientation.y[0])
+                                               + (connector.length/2 + tol)
+                                               * (connector.orientation.y[1]))),
+               (connector.cog[0] + ((connector.width/2 + tol)
+                                               * (connector.orientation.x[0])
+                                               + (connector.length/2 + tol)
+                                               * (connector.orientation.x[1])),
+                connector.cog[1] - ((connector.length/2 + tol)
+                                               * (connector.orientation.y[1])
+                                               + (connector.width/2 + tol)
+                                               * (connector.orientation.y[0]))),
+               (connector.cog[0] - ((connector.width/2 + tol)
+                                               * (connector.orientation.x[0])
+                                               - (connector.length/2 + tol)
+                                               * (connector.orientation.x[1])),
+                connector.cog[1] - ((connector.width/2 + tol)
+                                               * -(connector.orientation.y[0])
+                                               + (connector.length/2 + tol)
+                                               * (connector.orientation.y[1]))),
+               (connector.cog[0] - ((connector.width/2 + tol)
+                                               * (connector.orientation.x[0])
+                                               + (connector.length/2 + tol)
+                                               * (connector.orientation.x[1])),
+                connector.cog[1] + ((connector.width/2 + tol)
+                                               * (connector.orientation.y[0])
+                                               + (connector.length/2 + tol)
+                                               * (connector.orientation.y[1])))
+               ])
+    return polygon
+
+def overlap_check(connectors, tol):
+    """Function to check all connectors for overlop"""
+    overlap = False
+    cond = []
+    con_list = connectors.find_children(fn=lambda conn: conn.__class__ == Box or conn.__class__ == Cylinder)
+    if len(con_list) > 0:
+        for i in con_list:
+            pol_list = []
+            for con in con_list:
+                if con != i:
+                    polygon = pol_conn(connector=con, tol=tol)
+                    pol_list.append(polygon)
+            if len(pol_list) != 0:
+                for j in pol_list:
+                    con = pol_conn(connector=i, tol=0)
+                    cond.append(con.overlaps(j))
+    if any(cond):
+        overlap = True
+    return overlap
 
 def initial_item_placement(self, bracket, lastplaced_item, half_width, half_length, step, n, tol):
     """Function that uses the bracket, last placed item, connector-to-be-placed dimensions and

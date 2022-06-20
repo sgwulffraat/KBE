@@ -12,7 +12,7 @@ from working_testing import create_knapsack_packing_problem
 from source.problem_solution import PlacedShape, Solution, Container, Item
 from Manipulation2 import ManipulateAnything
 from connector import Connector
-from warnings_and_functions import show
+from warnings_and_functions import show, pol_conn, overlap_check
 import numpy as np
 import sys
 sys.path.append('source')
@@ -162,10 +162,21 @@ class Optimization(GeomBase):
     # Rotation step used in algorithm in [deg]. Larger angles result in more logical solution, but limits creativity.
     rotation_step = Input(30)
 
+    # Allow pop-up
+    popup_gui = Input(True, label="Allow pop-up")
+
     # Button to start optimization.
     @action(label="click_to_optimize",button_label="OPTIMIZE")
     def optimize(self):
-        self.optimization = "KnapsackPacking"
+        if overlap_check(connectors=self.bracket.to_manipulate.connectors,
+                         tol=self.bracket.to_manipulate.tol) is True:
+            msg = "Warning: Overlap present in initial solution. Try removing overlapping " \
+                  "connector."
+            warnings.warn(msg)
+            if self.popup_gui:
+                generate_warning("Warning: Invalid action", msg)
+        else:
+            self.optimization = "KnapsackPacking"
 
     # Button to show optimized results.
     @action(button_label="SHOW OPTIMIZED SOLUTION")
